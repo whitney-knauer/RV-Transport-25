@@ -1,0 +1,102 @@
+---
+title: "SS Calculations for Transport Studies"
+author: "Whitney Knauer"
+date: "2025-03-10"
+output: html_document
+---
+
+```{r}
+#| echo: false
+#| warning: false
+
+library(tidyverse)
+library(skimr)
+library(dplyr)
+library(ggplot2)
+library(ggbeeswarm)
+library(lme4)
+library(car)
+library(emmeans)
+library(gmodels)
+library(epiDisplay)
+library(psych)
+library(doBy)
+library(ggpubr)
+library(gridExtra)
+library(simr)
+library(pwr)
+library(broom)
+library(gt)
+library(showtext)
+library(TOSTER)
+library(epiR)
+```
+
+### Sample Size calculation for mortality difference.
+
+RV all cause mortality is 1.6% from arrival to 60d. Which seems too low, wonder what the denominator is?
+
+```{r}
+
+# Function to calculate sample size for a difference in proportions
+sample_size_proportions <- function(p1, p2, power = 0.8, alpha = 0.05) {
+  result <- power.prop.test(p1 = p1, p2 = p2, power = power, sig.level = alpha)
+  return(ceiling(result$n)) # Round up to ensure sufficient sample size
+}
+
+# Example usage:
+p1 <- 0.016  # Proportion in group 1
+p2 <- 0.032  # Proportion in group 2
+sample_size <- sample_size_proportions(p1, p2)
+cat("Required sample size per group:", sample_size, "\n")
+
+sample_size*1.25
+
+
+```
+
+If a treatment doubles the mortality rate from 1.6% to 3.2%, 1436 calves are needed per group. Need to also account for trailer load (clustering), source farm, etc. Will inflate samples size by 25%, so new number needed per group \~1800.
+
+### Sample size calculation for risk difference (injury)
+
+```{r}
+
+# Function to calculate sample size for a risk difference
+sample_size_risk_difference <- function(p1, p2, power = 0.8, alpha = 0.05) {
+  result <- power.prop.test(p1 = p1, p2 = p2, power = power, sig.level = alpha)
+  return(ceiling(result$n)) # Round up to ensure sufficient sample size
+}
+
+
+p1 <- 0.01  # Risk in high/normal stocking density
+p2 <- 0.02  # Risk in low stocking density group
+
+sample_size <- sample_size_risk_difference(p1, p2)
+cat("Required sample size per group:", sample_size, "\n")
+
+sample_size*1.25
+```
+
+To find a (p2-p1) risk difference or a risk difference of 1% (risk of injury increases with lower stocking density), a sample size of 2391 is needed. To inflate for clustering (trailer, source farm, etc) we will increase our ss by 25% and thus will require 2900 calves per group.
+
+### Sample size calculation for relative risk of injury
+
+```{r}
+
+# Function to calculate sample size for risk ratio using power.prop.test
+sample_size_risk_ratio <- function(p1, RR, power = 0.8, alpha = 0.05) {
+  p2 <- p1 * RR  # Compute expected proportion in the exposed group
+  result <- power.prop.test(p1 = p1, p2 = p2, power = power, sig.level = alpha)
+  return(ceiling(result$n)) # Round up to the nearest whole number
+}
+
+# Example usage:
+p1 <- 0.01  # Risk in high/normal stocking rate group
+RR <- 2    # Expected risk ratio, risk is 2X in low stocking rate group
+sample_size <- sample_size_risk_ratio(p1, RR)
+cat("Required sample size per group:", sample_size, "\n")
+
+
+```
+
+Same sample size as the RD ss because really saying the same thing with these two sets of arguments.
