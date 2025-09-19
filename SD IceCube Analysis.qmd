@@ -165,16 +165,50 @@ hour <- merged_data |>
     .groups = "drop")
 ```
 
-## Calf Summary - Who in data set? 
+## Calf Summary - Who in data set?
+
+```{r}
+#| warning: false
+#| echo: false
+
+
+key |> 
+  group_by(TRT) |> 
+  summarize (Count = n())
+ 
+key |> 
+  group_by(Section) |> 
+  summarize (Count = n())
+
+key |> 
+  group_by(TRT, FOO) |> 
+  summarize(Count = n())
+
+key |> 
+  group_by(TRT, Section) |> 
+  summarize (Count = n())
+
+
+key |> 
+  group_by(TRT) |> 
+  summarize (Count = n(), 
+             mean = mean(TimeTrip), 
+             sd = sd(TimeTrip))
+
+key$TRT <- relevel(factor(key$TRT), ref = "DF3.0")
+lm_bw <- lm(TimeTrip ~ TRT, data=key)
+summary(lm_bw)
+  
+
+```
 
 ## Hour
 
-### Overall + By TRT 
+### Overall + By TRT
 
 #### Laying
 
 ```{r}
-#| include: false
 #| warning: false
 #| echo: false
 
@@ -247,7 +281,6 @@ ggplot(aes(x = hoursfrom, y = lyingm, color=TRT)) +
 #### Standing
 
 ```{r}
-#| include: false
 #| warning: false
 #| echo: false
 
@@ -311,7 +344,6 @@ ggplot(aes(x = hoursfrom, y = standm, color=TRT)) +
 #### Steps
 
 ```{r}
-#| include: false
 #| warning: false
 #| echo: false
 
@@ -370,7 +402,6 @@ ggplot(aes(x = hoursfrom, y = steps, color=TRT)) +
 #### Transitions
 
 ```{r}
-#| include: false
 #| warning: false
 #| echo: false
 
