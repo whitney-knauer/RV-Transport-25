@@ -1,0 +1,424 @@
+---
+title: "IceCube SD 2025"
+author: "WAK"
+date: "today"
+format: 
+  html:
+    toc: true 
+    toc-float: true
+    toc-location: left
+---
+
+```{r}
+#| include: false
+#| warning: false
+#| echo: false
+
+library(epiDisplay)
+library(knitr)
+library(pROC)
+library(tidyverse)
+library(readxl)
+library(ggplot2)
+library(gmodels)
+library(ggbeeswarm)
+library(dplyr)
+library(readr)
+library(ggpubr)
+library(psych)
+library(lme4)
+library(Matrix)
+library(lmerTest)
+library(irr)
+library(lmerTest)
+library(emmeans)
+library(doBy)       
+library(gmodels)    
+library(car)           
+library(cowplot)       
+library(gridGraphics)  
+library(multcomp)
+library(hms)
+library(gt)
+library(lubridate)
+library(nlme)
+library(extrafont)
+```
+
+## Data Steps
+
+### Bring in Data
+
+```{r}
+#| include: false
+#| warning: false
+#| echo: false
+
+lay <- read_csv('data/activity_report_1.csv')
+
+new <- lay |>
+ separate(Start, into = c("Date", "Time"), sep = " ")
+
+unique(new$Date)
+charToRaw(new$Date[1])
+class(new$Date)
+
+charToRaw(new$Time[1])
+
+new$Date <- as.Date(as.character(new$Date), format = "%m/%d/%Y")
+new$Time <- as_hms(paste0(new$Time, ":00"))
+
+
+key<- read_csv("data/enroll.csv")
+
+key<-key |> 
+  mutate(Bdat=mdy(Bdat), 
+         DatMOC=mdy(DatMOC), 
+         DatON = mdy(DatON), 
+         ToTCC = mdy(ToTCC), 
+         ArrTCC = mdy(ArrTCC), 
+         DatOFF = mdy(DatOFF))
+```
+
+### Merge Two Data Sets
+
+```{r}
+#| include: false
+#| warning: false
+#| echo: false
+
+
+intersect(new$Cow, key$Cow)
+
+combined <- new |> 
+  inner_join(key, by = "Cow") %>% 
+  filter(!Cow %in% c(216, 268))
+
+#filtering out those two calves bc I can't match them on tfship as they have a loss of 1:15 to 2hrs of data around the time of shipping?
+
+combinednew <- 
+  combined |> 
+  mutate(datetime = as.POSIXct(paste(Date, Time), format = "%Y-%m-%d %H:%M:%S"), 
+         datetimeon = as.POSIXct(paste(DatON, TimeONp), format = "%Y-%m-%d %H:%M:%S"), 
+         datetimeoff = as.POSIXct(paste (DatOFF, TimeOFFp), format = "%Y-%m-%d %H:%M:%S"))
+
+#This filters to only times when IceCubes were on calves (128184obs to 124455obs)
+
+use <- combinednew |> 
+  filter(datetime >= datetimeon, datetime <= datetimeoff)
+```
+
+### Flagging to Trailer Entry
+
+```{r}
+#| include: false
+#| warning: false
+#| echo: false
+
+#adds a variable called "match_flag" that flags when a calf was scanned to ship
+
+use <- use |> 
+  mutate(
+    match_flag = if_else(
+      Date == ToTCC & 
+        (as.numeric(TimetoTCCp - Time, units="mins") >=0 &
+        as.numeric(TimetoTCCp - Time, units = "mins") <= 14), 
+      1,  
+      0    )) 
+
+#adds variable tfship, which scan to TCC time 0, all time before progressively negative, all time after progressively positive
+
+use |> 
+  group_by(Cow) |> 
+  summarize(matches = list(which(match_flag == 1)))
+
+use <- use |> 
+  group_by(Cow) |>  
+  mutate(
+    tfship = if_else(match_flag == 1, 0, NA_integer_),  
+    tfship = if_else(is.na(tfship), row_number() - which(match_flag == 1), tfship)  
+  ) |> 
+  ungroup()
+
+#creates a new variable called hoursfrom which groups behaviors by hours from the second feeding. This will allow looking at the 8hrs prior to feeding and the 8 or 12 hrs later. Should probably make a new df to look at that. 
+
+merged_data <- use |> 
+  mutate(
+    hoursfrom = case_when(
+      tfship == 0 ~ 0,                                      
+      tfship < 0 ~ as.integer((abs(tfship) - 1) %/% 4 + 1) * -1,  
+      tfship > 0 ~ as.integer((tfship - 1) %/% 4 + 1)           
+    )
+  )
+
+
+
+hour <- merged_data |> 
+  group_by(Cow, hour = floor(hoursfrom)) |>  
+  summarise(
+    Lying = sum(`Lying Time`, na.rm = TRUE)/60,   
+    Standing = sum(`Standing Time`, na.rm = TRUE)/60, 
+    Steps = sum(Steps), 
+    LB = sum(Transitions),
+    FOO = first(FOO),              
+    TRT = first(TRT),               
+    .groups = "drop")
+```
+
+## Calf Summary - Who in data set? 
+
+## Hour
+
+### Overall + By TRT 
+
+#### Laying
+
+```{r}
+#| include: false
+#| warning: false
+#| echo: false
+
+
+laying <- merged_data |> 
+  filter(hoursfrom >= -24 & hoursfrom <= 50) |> 
+  group_by(Cow, hoursfrom) |>  
+  summarize(
+    `Lying Time` = sum(`Lying Time`, na.rm = TRUE)) |> 
+  group_by(hoursfrom) |>  
+  summarize(
+    `Lying Time` = mean(`Lying Time`, na.rm = TRUE)) |> 
+  mutate(
+    lyingm = `Lying Time` / 60) |> 
+  ungroup()
+
+
+laying |> 
+ggplot(aes(x = hoursfrom, y = lyingm)) +
+  theme_classic() +
+  geom_point() +  
+  geom_line() +   
+  labs(
+    title = "Lying Time in the 48hrs around long haul transport",
+    x = "Hours from Trip Start",
+    y = "Lying Time (min)")+
+    scale_y_continuous(limits = c(0, 60), breaks = seq(0, 60, by = 5))+
+    scale_x_continuous(limits = c(-24, 50), breaks = seq(-24, 50, by = 2))
+
+
+
+laying2 <- merged_data |> 
+  filter(hoursfrom >= -24 & hoursfrom <= 50) |> 
+  group_by(Cow, hoursfrom, TRT) |>  
+  summarize(
+    `Lying Time` = sum(`Lying Time`, na.rm = TRUE)) |> 
+  group_by(hoursfrom, TRT) |>  
+  summarize(
+    `Lying Time` = mean(`Lying Time`, na.rm = TRUE)) |> 
+  mutate(
+    lyingm = `Lying Time` / 60) |> 
+  ungroup()
+
+
+laying2 |> 
+ggplot(aes(x = hoursfrom, y = lyingm, color=TRT)) +
+  theme_classic() +
+  geom_point() +  
+  geom_line() +   
+  labs(
+    title = "Lying Time in the 48hrs around long haul transport",
+    x = "Hours from Trip Start",
+    y = "Lying Time (min)")+
+    scale_y_continuous(limits = c(0, 60), breaks = seq(0, 60, by = 5))+
+    scale_x_continuous(limits = c(-24, 50), breaks = seq(-24, 50, by = 2))
+
+
+
+
+
+
+
+
+
+
+
+
+```
+
+#### Standing
+
+```{r}
+#| include: false
+#| warning: false
+#| echo: false
+
+standing <- merged_data |> 
+  filter(hoursfrom >= -24 & hoursfrom <= 50) |> 
+  group_by(Cow, hoursfrom) |>  
+  summarize(
+    `Standing Time` = sum(`Standing Time`, na.rm = TRUE)) |> 
+  group_by(hoursfrom) |>  
+  summarize(
+    `Standing Time` = mean(`Standing Time`, na.rm = TRUE)) |> 
+  mutate(
+    standm = `Standing Time` / 60) |> 
+  ungroup()
+
+
+standing |> 
+ggplot(aes(x = hoursfrom, y = standm)) +
+  theme_classic() +
+  geom_point() +  
+  geom_line() +   
+  labs(
+    title = "Standing Time in the 48hrs around transportation",
+    x = "Hours from Transport",
+    y = "Standing Time (min)") +
+    scale_y_continuous(limits = c(0, 60), breaks = seq(0, 60, by = 5))+
+    scale_x_continuous(limits = c(-24, 50), breaks = seq(-24, 50, by = 2))
+
+
+
+standing2 <- merged_data |> 
+  filter(hoursfrom >= -24 & hoursfrom <= 50) |> 
+  group_by(Cow, hoursfrom, TRT) |>  
+  summarize(
+    `Standing Time` = sum(`Standing Time`, na.rm = TRUE)) |> 
+  group_by(hoursfrom, TRT) |>  
+  summarize(
+    `Standing Time` = mean(`Standing Time`, na.rm = TRUE)) |> 
+  mutate(
+    standm = `Standing Time` / 60) |> 
+  ungroup()
+
+
+standing2 |> 
+ggplot(aes(x = hoursfrom, y = standm, color=TRT)) +
+  theme_classic() +
+  geom_point() +  
+  geom_line() +   
+  labs(
+    title = "Standing Time in the 48hrs around transportation",
+    x = "Hours from Transport",
+    y = "Standing Time (min)") +
+    scale_y_continuous(limits = c(0, 60), breaks = seq(0, 60, by = 5))+
+    scale_x_continuous(limits = c(-24, 50), breaks = seq(-24, 50, by = 2))
+
+
+
+
+```
+
+#### Steps
+
+```{r}
+#| include: false
+#| warning: false
+#| echo: false
+
+stepgrp <- merged_data |> 
+  filter(hoursfrom >= -24 & hoursfrom <= 50) |> 
+  group_by(Cow, hoursfrom) |>  
+  summarize(
+    `Steps` = sum(`Steps`, na.rm = TRUE)) |> 
+  group_by(hoursfrom) |>  
+  summarize(
+    steps = mean(`Steps`, na.rm = TRUE)) |> 
+  ungroup()
+
+
+stepgrp |> 
+ggplot(aes(x = hoursfrom, y = steps)) +
+  theme_classic() +
+  geom_point() +  
+  geom_line() +   
+  labs(
+    title = "Steps in the 48hrs around transportation",
+    x = "Hours from Transport",
+    y = "Steps(n)") +
+    scale_y_continuous(limits = c(0, 200), breaks = seq(0, 200, by = 50))+
+    scale_x_continuous(limits = c(-24, 50), breaks = seq(-24, 50, by = 2))
+
+
+
+stepgrp <- merged_data |> 
+  filter(hoursfrom >= -24 & hoursfrom <= 50) |> 
+  group_by(Cow, hoursfrom, TRT) |>  
+  summarize(
+    `Steps` = sum(`Steps`, na.rm = TRUE)) |> 
+  group_by(hoursfrom, TRT) |>  
+  summarize(
+    steps = mean(`Steps`, na.rm = TRUE)) |> 
+  ungroup()
+
+
+stepgrp |> 
+ggplot(aes(x = hoursfrom, y = steps, color=TRT)) +
+  theme_classic() +
+  geom_point() +  
+  geom_line() +   
+  labs(
+    title = "Steps in the 48hrs around transportation",
+    x = "Hours from Transport",
+    y = "Steps(n)") +
+    scale_y_continuous(limits = c(0, 200), breaks = seq(0, 200, by = 50))+
+    scale_x_continuous(limits = c(-24, 50), breaks = seq(-24, 50, by = 2))
+
+
+
+```
+
+#### Transitions
+
+```{r}
+#| include: false
+#| warning: false
+#| echo: false
+
+lbgrp <- merged_data |> 
+  filter(hoursfrom >= -24 & hoursfrom <= 50) |> 
+  group_by(Cow, hoursfrom) |>  
+  summarize(
+    `Transitions` = sum(`Transitions`, na.rm = TRUE)) |> 
+  group_by(hoursfrom) |>  
+  summarize(
+    lb = mean(`Transitions`, na.rm = TRUE)) |> 
+  ungroup()
+
+
+lbgrp |> 
+ggplot(aes(x = hoursfrom, y = lb)) +
+  theme_classic() +
+  geom_point() +  
+  geom_line() +   
+  labs(
+    title = "Transitions (LB) in the 48hrs around transportation",
+    x = "Hours from Transport",
+    y = "Transitions(n)") +
+    scale_y_continuous(limits = c(0, 8), breaks = seq(0, 8, by = 2))+
+    scale_x_continuous(limits = c(-24, 50), breaks = seq(-24, 50, by = 2))
+
+
+
+stepgrp2 <- merged_data |> 
+  filter(hoursfrom >= -24 & hoursfrom <= 50) |> 
+  group_by(Cow, hoursfrom, TRT) |>  
+  summarize(
+    `Transitions` = sum(`Transitions`, na.rm = TRUE)) |> 
+  group_by(hoursfrom, TRT) |>  
+  summarize(
+    lb = mean(`Transitions`, na.rm = TRUE)) |> 
+  ungroup()
+
+
+stepgrp2 |> 
+ggplot(aes(x = hoursfrom, y = lb, color=TRT)) +
+  theme_classic() +
+  geom_point() +  
+  geom_line() +   
+  labs(
+    title = "Transitions in the 48hrs around transportation",
+    x = "Hours from Transport",
+    y = "Transitions(n)") +
+    scale_y_continuous(limits = c(0, 8), breaks = seq(0, 8, by = 2))+
+    scale_x_continuous(limits = c(-24, 50), breaks = seq(-24, 50, by = 2))
+```
