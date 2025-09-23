@@ -163,6 +163,13 @@ hour <- merged_data |>
     FOO = first(FOO),              
     TRT = first(TRT),               
     .groups = "drop")
+
+fullcut<-
+merged_data %>% 
+  filter(tfship >= -96 & tfship <= 200) 
+
+write.csv(x = fullcut, file = "data/fulldatachecks.csv")
+  
 ```
 
 ## Calf Summary - Who in data set?
@@ -200,6 +207,56 @@ lm_bw <- lm(TimeTrip ~ TRT, data=key)
 summary(lm_bw)
   
 
+```
+
+## Data Investigation
+
+```{r}
+
+
+hour %>% 
+  filter(hour >= -24 & hour <= 50) %>% 
+  ggplot(aes(x=hour, y=Lying, color = factor(Cow), group = Cow))+
+         geom_line (aes(fill = Cow), size = 1, alpha = 0.1)+
+         geom_point()+ 
+         theme_minimal()
+
+
+hour %>% 
+  filter(hour >= -24 & hour <= 50) %>% 
+  group_by(TRT) %>% 
+  summarize(
+    lay = mean(Lying),
+    laysd = sd(Lying),
+    stand = mean(Standing),
+    standsd = sd(Standing),
+    steps = mean(Steps), 
+    lb = mean(LB)
+  )
+
+
+hour |> 
+  ggplot(aes (x = Lying))+
+  geom_histogram()
+
+hour |> 
+  ggplot(aes (x = Standing))+
+  geom_histogram()
+
+hour |> 
+  ggplot(aes (x = Steps))+
+  geom_histogram()
+
+hour |> 
+  ggplot(aes (x = LB))+
+  geom_histogram()
+
+
+
+hourcut <-
+  hour %>% 
+  filter(hour >= -24 & hour <= 50)
+write.csv(x = hourcut, file = "data/hourdatachecks.csv")
 ```
 
 ## Hour
@@ -266,7 +323,30 @@ ggplot(aes(x = hoursfrom, y = lyingm, color=TRT)) +
     scale_x_continuous(limits = c(-24, 50), breaks = seq(-24, 50, by = 2))
 
 
+laying3 <- merged_data |> 
+  filter(hoursfrom >= -24 & hoursfrom <= 50) |> 
+  group_by(Cow, hoursfrom, Section) |>  
+  summarize(
+    `Lying Time` = sum(`Lying Time`, na.rm = TRUE)) |> 
+  group_by(hoursfrom, Section) |>  
+  summarize(
+    `Lying Time` = mean(`Lying Time`, na.rm = TRUE)) |> 
+  mutate(
+    lyingm = `Lying Time` / 60) |> 
+  ungroup()
 
+
+laying3 |> 
+ggplot(aes(x = hoursfrom, y = lyingm, color=Section)) +
+  theme_classic() +
+  geom_point() +  
+  geom_line() +   
+  labs(
+    title = "Lying Time in the 48hrs around long haul transport",
+    x = "Hours from Trip Start",
+    y = "Lying Time (min)")+
+    scale_y_continuous(limits = c(0, 60), breaks = seq(0, 60, by = 5))+
+    scale_x_continuous(limits = c(-24, 50), breaks = seq(-24, 50, by = 2))
 
 
 
