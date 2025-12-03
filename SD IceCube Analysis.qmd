@@ -295,7 +295,7 @@ hourcut <-
 write.csv(x = hourcut, file = "data/hourdatachecks.csv")
 ```
 
-### Plots by Time Category
+#### Plots by Time Category
 
 ```{r}
 
@@ -363,6 +363,59 @@ summary(lm_mi)
 emmeans(lm_mi, ~TRT|timecat)
 #plot(lm_s)
 
+
+
+```
+
+#### Plot to sus out 3.5sf
+
+```{r}
+hour %>% 
+  filter(hour >= 28 & hour <= 50) %>% 
+  filter(timecat == "post") %>% 
+  filter(TRT == "DF3.5") %>% 
+  ggplot(aes(x=hour, y=Lying, color = factor(Cow), group = Cow))+
+         geom_line (aes(fill = Cow), size = 1, alpha = 0.1)+
+         geom_point()+ 
+         theme_minimal()
+
+
+hour %>% 
+  filter(hour >= 28 & hour <= 50) %>% 
+  filter(timecat == "post") %>% 
+  filter(TRT == "DF3.0") %>% 
+  ggplot(aes(x=hour, y=Lying, color = factor(Cow), group = Cow))+
+         geom_line (aes(fill = Cow), size = 1, alpha = 0.1)+
+         geom_point()+ 
+         theme_minimal()
+
+
+hour %>% 
+  filter(hour >= 28 & hour <= 50) %>% 
+  filter(timecat == "post") %>% 
+  filter(TRT == "DF4.5") %>% 
+  ggplot(aes(x=hour, y=Lying, color = factor(Cow), group = Cow))+
+         geom_line (aes(fill = Cow), size = 1, alpha = 0.1)+
+         geom_point()+ 
+         theme_minimal()
+
+
+
+#From these graphs it looks like the 3.5sd group had their icequbes removed as they came off the truck and/or soon after they arrived. There is enough variation in the other calves that it looks OK. 
+
+#How do I sus this out further? Sum for each calf? 
+
+hour %>% 
+   filter(hour >= 29 & hour <= 50) %>%
+  filter(timecat == "post") %>% 
+  filter(TRT == "DF3.5") %>% 
+  group_by(Cow) %>% 
+  summarize(
+    lay = sum(Lying), 
+    lay1 = sum(Lying)/22
+  )
+  
+#Then, if the summarized is 60 we can assume that the data is crap? 
 
 
 ```

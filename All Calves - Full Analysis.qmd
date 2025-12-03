@@ -1,0 +1,79 @@
+---
+title: "ALL CALVES"
+author: "WAK"
+format: html
+editor: visual
+---
+
+```{r}
+#| include: false
+#| warning: false
+#| echo: false
+
+library(epiDisplay)
+library(knitr)
+library(pROC)
+library(tidyverse)
+library(readxl)
+library(ggplot2)
+library(gmodels)
+library(ggbeeswarm)
+library(dplyr)
+library(readr)
+library(ggpubr)
+library(psych)
+library(lme4)
+library(Matrix)
+library(lmerTest)
+library(irr)
+library(lmerTest)
+library(emmeans)
+library(doBy)       
+library(gmodels)    
+library(car)           
+library(cowplot)       
+library(gridGraphics)  
+library(multcomp)
+library(hms)
+library(gt)
+library(lubridate)
+library(nlme)
+library(extrafont)
+```
+
+```{r}
+#| include: false
+#| warning: false
+#| echo: false
+
+all <- read_csv('data/all enroll MOC.csv')
+
+```
+
+```{r}
+#| warning: false
+#| echo: false
+
+all |> 
+  group_by(TRL2) |> 
+  summarize (Count = n())
+
+all |> 
+  group_by(TRL2, sex) |> 
+  summarize (Count = n())
+
+all |> 
+  group_by(TRL2, BREED) |> 
+  summarize (Count = n())
+
+all |> 
+  group_by(TRL2) |> 
+  summarize (
+    stp = mean(BRTHW))
+
+all |> 
+  group_by(TRL2, BREED) |> 
+  summarize (
+    stp = mean(BRTHW))
+
+```
