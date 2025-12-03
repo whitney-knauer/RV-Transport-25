@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="WAK">
-<meta name="dcterms.date" content="2025-09-19">
+<meta name="dcterms.date" content="2025-12-02">
 
 <title>IceCube SD 2025</title>
 <style>
@@ -21,6 +21,40 @@ ul.task-list li input[type="checkbox"] {
   width: 0.8em;
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
 
@@ -54,9 +88,17 @@ ul.task-list li input[type="checkbox"] {
   <li><a href="#flagging-to-trailer-entry" id="toc-flagging-to-trailer-entry" class="nav-link" data-scroll-target="#flagging-to-trailer-entry">Flagging to Trailer Entry</a></li>
   </ul></li>
   <li><a href="#calf-summary---who-in-data-set" id="toc-calf-summary---who-in-data-set" class="nav-link" data-scroll-target="#calf-summary---who-in-data-set">Calf Summary - Who in data set?</a></li>
+  <li><a href="#data-investigation" id="toc-data-investigation" class="nav-link" data-scroll-target="#data-investigation">Data Investigation</a>
+  <ul class="collapse">
+  <li><a href="#plots-by-time-category" id="toc-plots-by-time-category" class="nav-link" data-scroll-target="#plots-by-time-category">Plots by Time Category</a></li>
+  </ul></li>
   <li><a href="#hour" id="toc-hour" class="nav-link" data-scroll-target="#hour">Hour</a>
   <ul class="collapse">
   <li><a href="#overall-by-trt" id="toc-overall-by-trt" class="nav-link" data-scroll-target="#overall-by-trt">Overall + By TRT</a></li>
+  </ul></li>
+  <li><a href="#hour---one-load" id="toc-hour---one-load" class="nav-link" data-scroll-target="#hour---one-load">Hour - One Load</a>
+  <ul class="collapse">
+  <li><a href="#overall-by-trt-1" id="toc-overall-by-trt-1" class="nav-link" data-scroll-target="#overall-by-trt-1">Overall + By TRT</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -84,7 +126,7 @@ ul.task-list li input[type="checkbox"] {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">September 19, 2025</p>
+      <p class="date">December 2, 2025</p>
     </div>
   </div>
   
@@ -112,16 +154,25 @@ ul.task-list li input[type="checkbox"] {
 <h2 class="anchored" data-anchor-id="calf-summary---who-in-data-set">Calf Summary - Who in data set?</h2>
 <div class="cell">
 <div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 4 × 2
+<pre><code># A tibble: 3 × 2
   TRT   Count
   &lt;chr&gt; &lt;int&gt;
 1 DF3.0   122
 2 DF3.5    74
-3 DF4.5    67
-4 &lt;NA&gt;      2</code></pre>
+3 DF4.5    67</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 9 × 2
+<pre><code># A tibble: 4 × 3
+# Groups:   TRT [3]
+  TRT   OneLoad count
+  &lt;chr&gt;   &lt;dbl&gt; &lt;int&gt;
+1 DF3.0       0    35
+2 DF3.0       1    87
+3 DF3.5       1    74
+4 DF4.5       1    67</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 8 × 2
   Section Count
   &lt;chr&gt;   &lt;int&gt;
 1 A          15
@@ -131,12 +182,11 @@ ul.task-list li input[type="checkbox"] {
 5 E          21
 6 F          49
 7 G          60
-8 H          16
-9 &lt;NA&gt;        2</code></pre>
+8 H          16</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 30 × 3
-# Groups:   TRT [4]
+<pre><code># A tibble: 29 × 3
+# Groups:   TRT [3]
    TRT   FOO   Count
    &lt;chr&gt; &lt;chr&gt; &lt;int&gt;
  1 DF3.0 CAD       8
@@ -149,11 +199,11 @@ ul.task-list li input[type="checkbox"] {
  8 DF3.0 SWD       4
  9 DF3.0 TCM       2
 10 DF3.0 WAD      10
-# ℹ 20 more rows</code></pre>
+# ℹ 19 more rows</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 19 × 3
-# Groups:   TRT [4]
+<pre><code># A tibble: 18 × 3
+# Groups:   TRT [3]
    TRT   Section Count
    &lt;chr&gt; &lt;chr&gt;   &lt;int&gt;
  1 DF3.0 A           1
@@ -173,17 +223,15 @@ ul.task-list li input[type="checkbox"] {
 15 DF4.5 D           3
 16 DF4.5 F          16
 17 DF4.5 G          16
-18 DF4.5 H           7
-19 &lt;NA&gt;  &lt;NA&gt;        2</code></pre>
+18 DF4.5 H           7</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 4 × 4
-  TRT   Count  mean     sd
-  &lt;chr&gt; &lt;int&gt; &lt;dbl&gt;  &lt;dbl&gt;
-1 DF3.0   122  25.6  0.376
-2 DF3.5    74  25.6  0.367
-3 DF4.5    67  26.0  0.239
-4 &lt;NA&gt;      2  NA   NA    </code></pre>
+<pre><code># A tibble: 3 × 4
+  TRT   Count  mean    sd
+  &lt;chr&gt; &lt;int&gt; &lt;dbl&gt; &lt;dbl&gt;
+1 DF3.0   122  25.6 0.376
+2 DF3.5    74  25.6 0.367
+3 DF4.5    67  26.0 0.239</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
@@ -203,25 +251,97 @@ TRTDF4.5     0.349095   0.052276   6.678 1.46e-10 ***
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 Residual standard error: 0.3438 on 260 degrees of freedom
-  (2 observations deleted due to missingness)
 Multiple R-squared:  0.1649,    Adjusted R-squared:  0.1585 
 F-statistic: 25.68 on 2 and 260 DF,  p-value: 6.648e-11</code></pre>
 </div>
 </div>
 </section>
-<section id="hour" class="level2">
-<h2 class="anchored" data-anchor-id="hour">Hour</h2>
-<section id="overall-by-trt" class="level3">
-<h3 class="anchored" data-anchor-id="overall-by-trt">Overall + By TRT</h3>
-<section id="laying" class="level4">
-<h4 class="anchored" data-anchor-id="laying">Laying</h4>
+<section id="data-investigation" class="level2">
+<h2 class="anchored" data-anchor-id="data-investigation">Data Investigation</h2>
 <div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>hour <span class="sc">%&gt;%</span> </span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(hour <span class="sc">&gt;=</span> <span class="sc">-</span><span class="dv">24</span> <span class="sc">&amp;</span> hour <span class="sc">&lt;=</span> <span class="dv">50</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x=</span>hour, <span class="at">y=</span>Lying, <span class="at">color =</span> <span class="fu">factor</span>(Cow), <span class="at">group =</span> Cow))<span class="sc">+</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>         <span class="fu">geom_line</span> (<span class="fu">aes</span>(<span class="at">fill =</span> Cow), <span class="at">size =</span> <span class="dv">1</span>, <span class="at">alpha =</span> <span class="fl">0.1</span>)<span class="sc">+</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>         <span class="fu">geom_point</span>()<span class="sc">+</span> </span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>         <span class="fu">theme_minimal</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
+ℹ Please use `linewidth` instead.</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning in geom_line(aes(fill = Cow), size = 1, alpha = 0.1): Ignoring unknown
+aesthetics: fill</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Don't know how to automatically pick scale for object of type &lt;difftime&gt;.
+Defaulting to continuous.</code></pre>
+</div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
 <p><img src="SD-IceCube-Analysis_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
+</div>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>hour <span class="sc">%&gt;%</span> </span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(hour <span class="sc">&gt;=</span> <span class="sc">-</span><span class="dv">24</span> <span class="sc">&amp;</span> hour <span class="sc">&lt;=</span> <span class="dv">50</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(TRT) <span class="sc">%&gt;%</span> </span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">lay =</span> <span class="fu">mean</span>(Lying),</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">laysd =</span> <span class="fu">sd</span>(Lying),</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">stand =</span> <span class="fu">mean</span>(Standing),</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">standsd =</span> <span class="fu">sd</span>(Standing),</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">steps =</span> <span class="fu">mean</span>(Steps), </span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">lb =</span> <span class="fu">mean</span>(LB),</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">mi =</span> <span class="fu">mean</span>(MI)</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 3 × 8
+  TRT   lay           laysd stand         standsd steps    lb    mi
+  &lt;chr&gt; &lt;drtn&gt;        &lt;dbl&gt; &lt;drtn&gt;          &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+1 DF3.0 42.94775 secs  19.4 16.11605 secs    18.8  24.9  1.90  154.
+2 DF3.5 44.94361 secs  20.0 14.17070 secs    19.4  22.3  1.55  148.
+3 DF4.5 46.68698 secs  15.2 12.71302 secs    14.4  27.4  2.08  160.</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>hour <span class="sc">%&gt;%</span> </span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(hour <span class="sc">&gt;=</span> <span class="sc">-</span><span class="dv">24</span> <span class="sc">&amp;</span> hour <span class="sc">&lt;=</span> <span class="dv">50</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(TRT, timecat) <span class="sc">%&gt;%</span> </span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">lay =</span> <span class="fu">mean</span>(Lying),</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">laysd =</span> <span class="fu">sd</span>(Lying),</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">stand =</span> <span class="fu">mean</span>(Standing),</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">standsd =</span> <span class="fu">sd</span>(Standing),</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">steps =</span> <span class="fu">mean</span>(Steps), </span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">lb =</span> <span class="fu">mean</span>(LB),</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">mi =</span> <span class="fu">mean</span>(MI)</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>`summarise()` has grouped output by 'TRT'. You can override using the `.groups`
+argument.</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 9 × 9
+# Groups:   TRT [3]
+  TRT   timecat lay           laysd stand          standsd steps    lb    mi
+  &lt;chr&gt; &lt;fct&gt;   &lt;drtn&gt;        &lt;dbl&gt; &lt;drtn&gt;           &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+1 DF3.0 pre     50.59440 secs 12.0   8.759391 secs   11.2  10.1  1.67   61.1
+2 DF3.0 during  32.75936 secs 21.2  25.688916 secs   20.8  45.5  2.36  278. 
+3 DF3.0 post    48.77001 secs 17.0  10.819423 secs   16.6  12.5  1.52   81.7
+4 DF3.5 pre     52.08341 secs 11.0   7.020284 secs   10.1  11.7  1.57   70.1
+5 DF3.5 during  38.22457 secs 20.0  20.223709 secs   19.0  43.9  2.44  266. 
+6 DF3.5 post    48.59880 secs 22.3  11.401195 secs   22.3   1.49 0.352  49.1
+7 DF4.5 pre     51.45400 secs  9.82  8.546002 secs    9.82 11.9  1.83   72.3
+8 DF4.5 during  40.91970 secs 18.8  17.528579 secs   17.6  46.8  2.28  270. 
+9 DF4.5 post    49.08892 secs 12.0  10.911077 secs   12.0  18.7  2.08  111. </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>hour <span class="sc">|&gt;</span> </span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span> (<span class="at">x =</span> Lying))<span class="sc">+</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Don't know how to automatically pick scale for object of type &lt;difftime&gt;.
+Defaulting to continuous.
+`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
 </div>
 <div class="cell-output-display">
 <div>
@@ -230,17 +350,134 @@ F-statistic: 25.68 on 2 and 260 DF,  p-value: 6.648e-11</code></pre>
 </figure>
 </div>
 </div>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>hour <span class="sc">|&gt;</span> </span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span> (<span class="at">x =</span> Standing))<span class="sc">+</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Don't know how to automatically pick scale for object of type &lt;difftime&gt;.
+Defaulting to continuous.
+`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
 </div>
-</section>
-<section id="standing" class="level4">
-<h4 class="anchored" data-anchor-id="standing">Standing</h4>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="SD-IceCube-Analysis_files/figure-html/unnamed-chunk-6-3.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>hour <span class="sc">|&gt;</span> </span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span> (<span class="at">x =</span> Steps))<span class="sc">+</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="SD-IceCube-Analysis_files/figure-html/unnamed-chunk-6-4.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>hour <span class="sc">|&gt;</span> </span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span> (<span class="at">x =</span> LB))<span class="sc">+</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="SD-IceCube-Analysis_files/figure-html/unnamed-chunk-6-5.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>hourcut <span class="ot">&lt;-</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>  hour <span class="sc">%&gt;%</span> </span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(hour <span class="sc">&gt;=</span> <span class="sc">-</span><span class="dv">24</span> <span class="sc">&amp;</span> hour <span class="sc">&lt;=</span> <span class="dv">50</span>)</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(<span class="at">x =</span> hourcut, <span class="at">file =</span> <span class="st">"data/hourdatachecks.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="plots-by-time-category" class="level3">
+<h3 class="anchored" data-anchor-id="plots-by-time-category">Plots by Time Category</h3>
 <div class="cell">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(hour, <span class="fu">aes</span>(<span class="at">x =</span> TRT, <span class="at">y =</span> Lying, <span class="at">color =</span> TRT)) <span class="sc">+</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(<span class="at">outlier.shape =</span> <span class="cn">NA</span>) <span class="sc">+</span></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="fu">vars</span>(timecat)) <span class="sc">+</span></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_jitter</span>() <span class="sc">+</span></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_classic</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Don't know how to automatically pick scale for object of type &lt;difftime&gt;.
+Defaulting to continuous.</code></pre>
+</div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
 <p><img src="SD-IceCube-Analysis_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
+</div>
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>hour<span class="sc">$</span>Lying_hr <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(hour<span class="sc">$</span>Lying, <span class="at">units =</span> <span class="st">"secs"</span>)</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>lm_lay <span class="ot">&lt;-</span><span class="fu">lm</span>(Lying_hr <span class="sc">~</span>TRT<span class="sc">*</span>timecat, <span class="at">data=</span>hour)</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(lm_lay)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = Lying_hr ~ TRT * timecat, data = hour)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-51.963  -5.046   7.917  11.773  27.241 
+
+Coefficients:
+                       Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)             50.8987     0.2857 178.156  &lt; 2e-16 ***
+TRTDF3.5                 1.1847     0.6153   1.925  0.05418 .  
+TRTDF4.5                 1.0639     0.4012   2.652  0.00801 ** 
+timecatduring          -18.1394     0.4237 -42.809  &lt; 2e-16 ***
+timecatpost             -2.5799     0.4260  -6.056 1.42e-09 ***
+TRTDF3.5:timecatduring   4.2805     0.8004   5.348 8.95e-08 ***
+TRTDF4.5:timecatduring   7.0965     0.6598  10.755  &lt; 2e-16 ***
+TRTDF3.5:timecatpost    -1.2762     0.7208  -1.770  0.07666 .  
+TRTDF4.5:timecatpost    -1.8107     0.6132  -2.953  0.00315 ** 
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 18.38 on 31482 degrees of freedom
+Multiple R-squared:  0.09629,   Adjusted R-squared:  0.09606 
+F-statistic: 419.3 on 8 and 31482 DF,  p-value: &lt; 2.2e-16</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="fu">emmeans</span>(lm_lay, <span class="sc">~</span>TRT<span class="sc">|</span>timecat)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>timecat = pre:
+ TRT   emmean    SE    df lower.CL upper.CL
+ DF3.0   50.9 0.286 31482     50.3     51.5
+ DF3.5   52.1 0.545 31482     51.0     53.2
+ DF4.5   52.0 0.282 31482     51.4     52.5
+
+timecat = during:
+ TRT   emmean    SE    df lower.CL upper.CL
+ DF3.0   32.8 0.313 31482     32.1     33.4
+ DF3.5   38.2 0.405 31482     37.4     39.0
+ DF4.5   40.9 0.420 31482     40.1     41.7
+
+timecat = post:
+ TRT   emmean    SE    df lower.CL upper.CL
+ DF3.0   48.3 0.316 31482     47.7     48.9
+ DF3.5   48.2 0.203 31482     47.8     48.6
+ DF4.5   47.6 0.339 31482     46.9     48.2
+
+Confidence level used: 0.95 </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co">#plot(lm_lay)</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(hour, <span class="fu">aes</span>(<span class="at">x =</span> TRT, <span class="at">y =</span> Standing, <span class="at">color =</span> TRT)) <span class="sc">+</span></span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(<span class="at">outlier.shape =</span> <span class="cn">NA</span>) <span class="sc">+</span></span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="fu">vars</span>(timecat)) <span class="sc">+</span></span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_jitter</span>() <span class="sc">+</span></span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_classic</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Don't know how to automatically pick scale for object of type &lt;difftime&gt;.
+Defaulting to continuous.</code></pre>
 </div>
 <div class="cell-output-display">
 <div>
@@ -249,10 +486,267 @@ F-statistic: 25.68 on 2 and 260 DF,  p-value: 6.648e-11</code></pre>
 </figure>
 </div>
 </div>
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>hour<span class="sc">$</span>stand <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(hour<span class="sc">$</span>Standing, <span class="at">units =</span> <span class="st">"secs"</span>)</span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>lm_s <span class="ot">&lt;-</span><span class="fu">lm</span>(stand <span class="sc">~</span>TRT<span class="sc">*</span>timecat, <span class="at">data=</span>hour)</span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(lm_s)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = stand ~ TRT * timecat, data = hour)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-25.689 -11.617  -7.569   4.654  52.330 
+
+Coefficients:
+                       Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)              8.4853     0.2797  30.333  &lt; 2e-16 ***
+TRTDF3.5                -1.4650     0.6025  -2.432  0.01503 *  
+TRTDF4.5                -0.6556     0.3928  -1.669  0.09510 .  
+timecatduring           17.2036     0.4149  41.465  &lt; 2e-16 ***
+timecatpost              2.4199     0.4172   5.801 6.66e-09 ***
+TRTDF3.5:timecatduring  -4.0002     0.7837  -5.104 3.34e-07 ***
+TRTDF4.5:timecatduring  -7.5047     0.6461 -11.615  &lt; 2e-16 ***
+TRTDF3.5:timecatpost     2.1773     0.7058   3.085  0.00204 ** 
+TRTDF4.5:timecatpost     1.7487     0.6005   2.912  0.00359 ** 
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 18 on 31482 degrees of freedom
+Multiple R-squared:  0.08723,   Adjusted R-squared:  0.087 
+F-statistic: 376.1 on 8 and 31482 DF,  p-value: &lt; 2.2e-16</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="fu">emmeans</span>(lm_s, <span class="sc">~</span>TRT<span class="sc">|</span>timecat)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>timecat = pre:
+ TRT   emmean    SE    df lower.CL upper.CL
+ DF3.0   8.49 0.280 31482     7.94     9.03
+ DF3.5   7.02 0.534 31482     5.97     8.07
+ DF4.5   7.83 0.276 31482     7.29     8.37
+
+timecat = during:
+ TRT   emmean    SE    df lower.CL upper.CL
+ DF3.0  25.69 0.306 31482    25.09    26.29
+ DF3.5  20.22 0.397 31482    19.45    21.00
+ DF4.5  17.53 0.411 31482    16.72    18.33
+
+timecat = post:
+ TRT   emmean    SE    df lower.CL upper.CL
+ DF3.0  10.91 0.309 31482    10.30    11.51
+ DF3.5  11.62 0.199 31482    11.23    12.01
+ DF4.5  12.00 0.332 31482    11.35    12.65
+
+Confidence level used: 0.95 </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="co">#plot(lm_s)</span></span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(hour, <span class="fu">aes</span>(<span class="at">x =</span> TRT, <span class="at">y =</span> Steps, <span class="at">color =</span> TRT)) <span class="sc">+</span></span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(<span class="at">outlier.shape =</span> <span class="cn">NA</span>) <span class="sc">+</span></span>
+<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="fu">vars</span>(timecat)) <span class="sc">+</span></span>
+<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_jitter</span>() <span class="sc">+</span></span>
+<span id="cb38-8"><a href="#cb38-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_classic</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="SD-IceCube-Analysis_files/figure-html/unnamed-chunk-7-3.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>lm_st <span class="ot">&lt;-</span><span class="fu">lm</span>(Steps <span class="sc">~</span>TRT<span class="sc">*</span>timecat, <span class="at">data=</span>hour)</span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(lm_st)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = Steps ~ TRT * timecat, data = hour)
+
+Residuals:
+   Min     1Q Median     3Q    Max 
+-46.83  -9.99  -2.36  -1.14 845.47 
+
+Coefficients:
+                       Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)              9.8633     0.4488  21.977  &lt; 2e-16 ***
+TRTDF3.5                 1.8722     0.9665   1.937   0.0528 .  
+TRTDF4.5                 0.4967     0.6302   0.788   0.4306    
+timecatduring           35.6638     0.6656  53.579  &lt; 2e-16 ***
+timecatpost              3.1270     0.6693   4.672 2.99e-06 ***
+TRTDF3.5:timecatduring  -3.4984     1.2573  -2.782   0.0054 ** 
+TRTDF4.5:timecatduring   0.8111     1.0366   0.782   0.4339    
+TRTDF3.5:timecatpost   -13.7241     1.1324 -12.120  &lt; 2e-16 ***
+TRTDF4.5:timecatpost    -4.2053     0.9634  -4.365 1.27e-05 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 28.88 on 31482 degrees of freedom
+Multiple R-squared:  0.2492,    Adjusted R-squared:  0.2491 
+F-statistic:  1306 on 8 and 31482 DF,  p-value: &lt; 2.2e-16</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="fu">emmeans</span>(lm_st, <span class="sc">~</span>TRT<span class="sc">|</span>timecat)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>timecat = pre:
+ TRT   emmean    SE    df lower.CL upper.CL
+ DF3.0   9.86 0.449 31482    8.984    10.74
+ DF3.5  11.74 0.856 31482   10.058    13.41
+ DF4.5  10.36 0.442 31482    9.493    11.23
+
+timecat = during:
+ TRT   emmean    SE    df lower.CL upper.CL
+ DF3.0  45.53 0.492 31482   44.564    46.49
+ DF3.5  43.90 0.636 31482   42.654    45.15
+ DF4.5  46.83 0.660 31482   45.541    48.13
+
+timecat = post:
+ TRT   emmean    SE    df lower.CL upper.CL
+ DF3.0  12.99 0.496 31482   12.017    13.96
+ DF3.5   1.14 0.319 31482    0.514     1.76
+ DF4.5   9.28 0.533 31482    8.236    10.33
+
+Confidence level used: 0.95 </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="co">#plot(lm_s)</span></span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(hour, <span class="fu">aes</span>(<span class="at">x =</span> TRT, <span class="at">y =</span> LB, <span class="at">color =</span> TRT)) <span class="sc">+</span></span>
+<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(<span class="at">outlier.shape =</span> <span class="cn">NA</span>) <span class="sc">+</span></span>
+<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="fu">vars</span>(timecat)) <span class="sc">+</span></span>
+<span id="cb43-8"><a href="#cb43-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_jitter</span>() <span class="sc">+</span></span>
+<span id="cb43-9"><a href="#cb43-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_classic</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="SD-IceCube-Analysis_files/figure-html/unnamed-chunk-7-4.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>lm_lb <span class="ot">&lt;-</span><span class="fu">lm</span>(LB <span class="sc">~</span>TRT<span class="sc">*</span>timecat, <span class="at">data=</span>hour)</span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(lm_lb)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = LB ~ TRT * timecat, data = hour)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-2.4400 -1.3558 -0.1573  0.4350 20.3758 
+
+Coefficients:
+                       Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)             1.62415    0.02761  58.819  &lt; 2e-16 ***
+TRTDF3.5               -0.05913    0.05947  -0.994   0.3201    
+TRTDF4.5               -0.02946    0.03877  -0.760   0.4474    
+timecatduring           0.73168    0.04095  17.867  &lt; 2e-16 ***
+timecatpost            -0.07198    0.04118  -1.748   0.0805 .  
+TRTDF3.5:timecatduring  0.14331    0.07736   1.853   0.0640 .  
+TRTDF4.5:timecatduring -0.04320    0.06377  -0.677   0.4981    
+TRTDF3.5:timecatpost   -1.33573    0.06967 -19.173  &lt; 2e-16 ***
+TRTDF4.5:timecatpost   -0.44325    0.05927  -7.478 7.72e-14 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 1.777 on 31482 degrees of freedom
+Multiple R-squared:  0.1693,    Adjusted R-squared:  0.1691 
+F-statistic: 802.3 on 8 and 31482 DF,  p-value: &lt; 2.2e-16</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="fu">emmeans</span>(lm_lb, <span class="sc">~</span>TRT<span class="sc">|</span>timecat)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>timecat = pre:
+ TRT   emmean     SE    df lower.CL upper.CL
+ DF3.0  1.624 0.0276 31482    1.570    1.678
+ DF3.5  1.565 0.0527 31482    1.462    1.668
+ DF4.5  1.595 0.0272 31482    1.541    1.648
+
+timecat = during:
+ TRT   emmean     SE    df lower.CL upper.CL
+ DF3.0  2.356 0.0302 31482    2.297    2.415
+ DF3.5  2.440 0.0392 31482    2.363    2.517
+ DF4.5  2.283 0.0406 31482    2.204    2.363
+
+timecat = post:
+ TRT   emmean     SE    df lower.CL upper.CL
+ DF3.0  1.552 0.0305 31482    1.492    1.612
+ DF3.5  0.157 0.0196 31482    0.119    0.196
+ DF4.5  1.079 0.0328 31482    1.015    1.144
+
+Confidence level used: 0.95 </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="co">#plot(lm_s)</span></span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(hour, <span class="fu">aes</span>(<span class="at">x =</span> TRT, <span class="at">y =</span> MI, <span class="at">color =</span> TRT)) <span class="sc">+</span></span>
+<span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(<span class="at">outlier.shape =</span> <span class="cn">NA</span>) <span class="sc">+</span></span>
+<span id="cb48-6"><a href="#cb48-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="fu">vars</span>(timecat)) <span class="sc">+</span></span>
+<span id="cb48-7"><a href="#cb48-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_jitter</span>() <span class="sc">+</span></span>
+<span id="cb48-8"><a href="#cb48-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_classic</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="SD-IceCube-Analysis_files/figure-html/unnamed-chunk-7-5.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a>lm_mi <span class="ot">&lt;-</span><span class="fu">lm</span>(MI <span class="sc">~</span>TRT<span class="sc">*</span>timecat, <span class="at">data=</span>hour)</span>
+<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(lm_mi)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = MI ~ TRT * timecat, data = hour)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-278.31  -58.49  -19.30    4.11 2604.11 
+
+Coefficients:
+                       Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)              60.657      2.362  25.681  &lt; 2e-16 ***
+TRTDF3.5                  9.471      5.087   1.862  0.06263 .  
+TRTDF4.5                  5.236      3.316   1.579  0.11443    
+timecatduring           217.657      3.503  62.134  &lt; 2e-16 ***
+timecatpost              23.070      3.522   6.550 5.84e-11 ***
+TRTDF3.5:timecatduring  -21.571      6.617  -3.260  0.00112 ** 
+TRTDF4.5:timecatduring  -13.432      5.455  -2.462  0.01381 *  
+TRTDF3.5:timecatpost    -73.900      5.959 -12.401  &lt; 2e-16 ***
+TRTDF4.5:timecatpost    -30.472      5.070  -6.010 1.87e-09 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 152 on 31482 degrees of freedom
+Multiple R-squared:  0.2876,    Adjusted R-squared:  0.2874 
+F-statistic:  1588 on 8 and 31482 DF,  p-value: &lt; 2.2e-16</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb51"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="fu">emmeans</span>(lm_mi, <span class="sc">~</span>TRT<span class="sc">|</span>timecat)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>timecat = pre:
+ TRT   emmean   SE    df lower.CL upper.CL
+ DF3.0   60.7 2.36 31482     56.0     65.3
+ DF3.5   70.1 4.51 31482     61.3     79.0
+ DF4.5   65.9 2.33 31482     61.3     70.5
+
+timecat = during:
+ TRT   emmean   SE    df lower.CL upper.CL
+ DF3.0  278.3 2.59 31482    273.2    283.4
+ DF3.5  266.2 3.35 31482    259.6    272.8
+ DF4.5  270.1 3.47 31482    263.3    276.9
+
+timecat = post:
+ TRT   emmean   SE    df lower.CL upper.CL
+ DF3.0   83.7 2.61 31482     78.6     88.8
+ DF3.5   19.3 1.68 31482     16.0     22.6
+ DF4.5   58.5 2.81 31482     53.0     64.0
+
+Confidence level used: 0.95 </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="co">#plot(lm_s)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
-<section id="steps" class="level4">
-<h4 class="anchored" data-anchor-id="steps">Steps</h4>
+</section>
+<section id="hour" class="level2">
+<h2 class="anchored" data-anchor-id="hour">Hour</h2>
+<section id="overall-by-trt" class="level3">
+<h3 class="anchored" data-anchor-id="overall-by-trt">Overall + By TRT</h3>
+<section id="laying" class="level4">
+<h4 class="anchored" data-anchor-id="laying">Laying</h4>
 <div class="cell">
 <div class="cell-output-display">
 <div>
@@ -268,10 +762,31 @@ F-statistic: 25.68 on 2 and 260 DF,  p-value: 6.648e-11</code></pre>
 </figure>
 </div>
 </div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="SD-IceCube-Analysis_files/figure-html/unnamed-chunk-8-3.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="SD-IceCube-Analysis_files/figure-html/unnamed-chunk-8-4.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="SD-IceCube-Analysis_files/figure-html/unnamed-chunk-8-5.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
 </div>
 </section>
-<section id="transitions" class="level4">
-<h4 class="anchored" data-anchor-id="transitions">Transitions</h4>
+<section id="standing" class="level4">
+<h4 class="anchored" data-anchor-id="standing">Standing</h4>
 <div class="cell">
 <div class="cell-output-display">
 <div>
@@ -284,6 +799,178 @@ F-statistic: 25.68 on 2 and 260 DF,  p-value: 6.648e-11</code></pre>
 <div>
 <figure class="figure">
 <p><img src="SD-IceCube-Analysis_files/figure-html/unnamed-chunk-9-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="steps" class="level4">
+<h4 class="anchored" data-anchor-id="steps">Steps</h4>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="SD-IceCube-Analysis_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="SD-IceCube-Analysis_files/figure-html/unnamed-chunk-10-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="transitions" class="level4">
+<h4 class="anchored" data-anchor-id="transitions">Transitions</h4>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="SD-IceCube-Analysis_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="SD-IceCube-Analysis_files/figure-html/unnamed-chunk-11-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="motion-index" class="level4">
+<h4 class="anchored" data-anchor-id="motion-index">Motion Index</h4>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="SD-IceCube-Analysis_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="SD-IceCube-Analysis_files/figure-html/unnamed-chunk-12-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="SD-IceCube-Analysis_files/figure-html/unnamed-chunk-12-3.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+</section>
+<section id="hour---one-load" class="level2">
+<h2 class="anchored" data-anchor-id="hour---one-load">Hour - One Load</h2>
+<section id="overall-by-trt-1" class="level3">
+<h3 class="anchored" data-anchor-id="overall-by-trt-1">Overall + By TRT</h3>
+<section id="laying-1" class="level4">
+<h4 class="anchored" data-anchor-id="laying-1">Laying</h4>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="SD-IceCube-Analysis_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="SD-IceCube-Analysis_files/figure-html/unnamed-chunk-13-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="SD-IceCube-Analysis_files/figure-html/unnamed-chunk-13-3.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="standing-1" class="level4">
+<h4 class="anchored" data-anchor-id="standing-1">Standing</h4>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="SD-IceCube-Analysis_files/figure-html/unnamed-chunk-14-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="SD-IceCube-Analysis_files/figure-html/unnamed-chunk-14-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="steps-1" class="level4">
+<h4 class="anchored" data-anchor-id="steps-1">Steps</h4>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="SD-IceCube-Analysis_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="SD-IceCube-Analysis_files/figure-html/unnamed-chunk-15-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="transitions-1" class="level4">
+<h4 class="anchored" data-anchor-id="transitions-1">Transitions</h4>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="SD-IceCube-Analysis_files/figure-html/unnamed-chunk-16-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="SD-IceCube-Analysis_files/figure-html/unnamed-chunk-16-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="motion-index-1" class="level4">
+<h4 class="anchored" data-anchor-id="motion-index-1">Motion Index</h4>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="SD-IceCube-Analysis_files/figure-html/unnamed-chunk-17-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="SD-IceCube-Analysis_files/figure-html/unnamed-chunk-17-2.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
