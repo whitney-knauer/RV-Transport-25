@@ -39,7 +39,12 @@ library(gt)
 library(lubridate)
 library(nlme)
 library(extrafont)
+library(stringi)
 ```
+
+### Data Steps
+
+#### Pull in data
 
 ```{r}
 #| include: false
@@ -48,32 +53,176 @@ library(extrafont)
 
 all <- read_csv('data/all enroll MOC.csv')
 
+all %>%
+  group_by(ID) %>%
+  summarize(n = n()) %>%
+  filter(n > 1)
+
+stack <- read_csv('data/clean.csv')
+
+
+full <- all %>% 
+  left_join(stack, by = "ID")
+
+write.csv(x = full, file = "data/full.csv")
+
+
 ```
+
+#### Creating new variables
 
 ```{r}
 #| warning: false
 #| echo: false
 
-all |> 
+#first select which variables remain in the data set: 
+
+full_new <- 
+  full %>% 
+  select( ID, EID.x, BIRTH, sex, BREED,Breed2, BRTHW, SERUM, SORCE, TRL2, LOADT, Date_PNEU1, Remark_PNEU1, Date_PNEU2, Remark_PNEU2, Date_PNEU3, Remark_PNEU3, Date_SCOURS1, Remark_SCOURS1, Date_SCOURS2, Remark_SCOURS2, Date_BLOAT1, Remark_BLOAT1, Date_BLOAT2, Remark_BLOAT2, Date_DIED1, Remark_DIED1)
+
+full_new$TRL2 = as.character(full_new$TRL2)
+
+
+#convert all dates into date vs. chr variables
+
+head(full_new$BIRTH)
+head(full_new$LOADT)
+
+
+#create a new variable called ARR wich is LOADT + 1
+full_new <- full_new %>%
+  mutate(
+    LOADT_date = mdy(LOADT),          
+    ARR = LOADT_date + days(1)
+  )
+
+#convert dates so can add and subtract
+
+full_new <- full_new %>%
+  mutate(
+    BIRTH = mdy(BIRTH),
+    LOADT = mdy(LOADT), 
+    Date_PNEU1 = mdy(Date_PNEU1), 
+    Date_PNEU2 = mdy(Date_PNEU2), 
+    Date_PNEU3 = mdy(Date_PNEU3), 
+    Date_SCOURS1 = mdy(Date_SCOURS1), 
+    Date_SCOURS2 = mdy(Date_SCOURS2), 
+    Date_BLOAT1 = mdy(Date_BLOAT1), 
+    Date_BLOAT2 = mdy(Date_BLOAT2), 
+    Date_DIED1 = mdy(Date_DIED1)
+  )
+
+#create some new variables realted to days in age at stuff and age from arrival at stuff. 
+
+#days in age load
+#days in age arrival
+#dfa pneu1
+#dfa pneu2
+#dfa pneu3
+#dfa scour1
+#dfa scour 2
+#dfa bloat1
+#dfa bloat2
+#dfa died
+
+full_new<- 
+  full_new %>% 
+  mutate(
+    diaload = as.numeric(LOADT - BIRTH), 
+    diaARR = as.numeric (ARR - BIRTH), 
+    dfaP1 = as.numeric(Date_PNEU1 - ARR), 
+    dfaP2 = as.numeric(Date_PNEU2 - ARR), 
+    dfaP3 = as.numeric(Date_PNEU3 - ARR), 
+    dfaD1 = as.numeric(Date_SCOURS1 - ARR),
+    dfaD2 = as.numeric(Date_SCOURS2 - ARR), 
+    dfaB1 = as.numeric(Date_BLOAT1 - ARR), 
+    dfaB2 = as.numeric(Date_BLOAT2 - ARR), 
+    dfaDIED = as.numeric(Date_DIED1 - ARR))
+
+#create unique identifier for trailer load using date and trl2 
+
+full_new <- full_new %>%
+  mutate(
+    LOAD = factor(paste(LOADT, TRL2, Breed2, sep = "_")))
+
+datachecks <- full_new %>% 
+  count(LOAD)
+
+datachecks
+
+write.csv(x = datachecks, file = "data/trailer loads.csv")
+
+#n=4 calves that died/euthanized at MOC before they left but were still enrolled. Removed them from data sheet; also removed 1 animal that was loaded out on 8.11 for unknown reasons (the only animal that day)
+
+#need to check with Brett on the trailer load data, looks like there are ~16ish loads for each SD, which is btw 2000-3000 calves per group.
+
+
+#add some new variables like pn1yn etc for all treatments
+
+full_new<- full_new %>% 
+  mutate(
+   PN1 = if_else(dfaP1>=0, 1, 0) %>% replace_na(0), 
+   PN2 = if_else(dfaP2>=0, 1, 0)%>% replace_na(0), 
+   PN3 = if_else(dfaP3>=0, 1, 0)%>% replace_na(0), 
+   DIA1 = ifelse(dfaD1>=0, 1, 0)%>% replace_na(0), 
+   DIA2 = ifelse(dfaD2>=0, 1, 0)%>% replace_na(0), 
+   B1 = ifelse(dfaB1>=0, 1, 0)%>% replace_na(0), 
+   B2 = ifelse(dfaB2>=0, 1, 0)%>% replace_na(0), 
+   DIED = ifelse(dfaDIED>=0, 1, 0)%>% replace_na(0))
+
+#create a data set for 60d and for 30d? 
+#need to also consider the exclusions (n=16 trailers per treatment group)
+   
+   
+```
+
+### Summaries with Calf Key
+
+This description is for all calves with a TRL2 item (n=21255)
+
+```{r}
+#| warning: false
+#| echo: false
+
+full|> 
   group_by(TRL2) |> 
   summarize (Count = n())
 
-all |> 
+full |> 
   group_by(TRL2, sex) |> 
   summarize (Count = n())
 
-all |> 
+full |> 
+  group_by(TRL2, sex, BREED) |> 
+  summarize (Count = n())
+
+full |> 
   group_by(TRL2, BREED) |> 
   summarize (Count = n())
 
-all |> 
+full |> 
   group_by(TRL2) |> 
   summarize (
     stp = mean(BRTHW))
 
-all |> 
+full |> 
   group_by(TRL2, BREED) |> 
   summarize (
     stp = mean(BRTHW))
+
+
+full_new %>% 
+  group_by(TRL2) %>% 
+  summarize(
+    prop_P1 = mean(PN1),
+    avg_PI = mean(dfaP1, na.rm=TRUE),
+    prop_DIA = mean(DIA1), 
+    avg_DIA = mean(dfaD1, na.rm=TRUE), 
+    prop_B = mean(B1), 
+    avg_B = mean(dfaB1, na.rm=TRUE), 
+    prop_DED = mean(DIED), 
+    avg_DED = mean(dfaDIED, na.rm=TRUE))
+
 
 ```

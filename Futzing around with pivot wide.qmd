@@ -1,0 +1,319 @@
+---
+title: "Data Play for Pivot Wider"
+author: "WAK"
+format: html
+editor: visual
+---
+
+```{r}
+#| include: false
+#| warning: false
+#| echo: false
+
+library(epiDisplay)
+library(knitr)
+library(pROC)
+library(tidyverse)
+library(readxl)
+library(ggplot2)
+library(gmodels)
+library(ggbeeswarm)
+library(dplyr)
+library(readr)
+library(ggpubr)
+library(psych)
+library(lme4)
+library(Matrix)
+library(lmerTest)
+library(irr)
+library(lmerTest)
+library(emmeans)
+library(doBy)       
+library(gmodels)    
+library(car)           
+library(cowplot)       
+library(gridGraphics)  
+library(multcomp)
+library(hms)
+library(gt)
+library(lubridate)
+library(nlme)
+library(extrafont)
+```
+
+## Data Steps
+
+```{r}
+#| include: false
+#| warning: false
+#| echo: false
+
+all <- read_csv('data/all enroll MOC.csv')
+
+
+#need to bring in all events, pivot wide (with the events we want) and then merge onto the "all" data set. This next bit will be to play around with a smaller pivotwide to makes sure it is working. 
+
+test <- read_csv('data/data play.csv')
+
+#select only columns that are needed
+
+new <- 
+  test %>% 
+  select( "ID", "EID", "BREED", "BIRTH", "Event", "DIM", "Date", "Remark", "Protocols")
+
+#pivot wider to have one line with all data for each calf
+
+#filter for only the events I care about
+new<-
+  new %>% 
+  filter(Event %in% c("PNEU", "BLOAT", "COMMENT", "SCOURS", "DIED"))
+
+#add a new column so events stay
+new <- new %>%
+  mutate(Event_keep = Event)
+
+#pivot wider. But this still results in multiple columns per animal if they have an event and date and remark
+
+new_wide <- new %>%
+  pivot_wider(
+    id_cols = c(ID),
+    names_from = Event,
+    values_from = c(Date, Remark)
+  ) 
+
+#what about repeat events? 
+
+new1 <- 
+  new %>% 
+  filter(Event %in% c("PNEU", "BLOAT", "COMMENT", "SCOURS", "DIED"))
+
+new1_num <- 
+  new1 %>% 
+  group_by(ID, Event) %>% 
+  mutate(Event_num = row_number()) %>% 
+  ungroup() %>% 
+  unite(Event_tag, Event, Event_num, sep="")
+
+new1_wide<-
+  new1_num %>% 
+  pivot_wider(
+    id_cols = ID, 
+    names_from = Event_tag, 
+    values_from = c(Date, Remark)
+  )
+
+#I think this worked!!!!! Now to try on a larger data set. 
+```
+
+### Messing with DVC ALL CALVES (n=979260 lines of data)
+
+```{r}
+#need to bring in all events, pivot wide (with the events we want) and then merge onto the "all" data set. This next bit will be to play around with a smaller pivotwide to makes sure it is working. 
+
+dvc <- read_csv('data/DVC Events 6125 to 112025.csv')
+
+#select only columns that are needed
+
+dvc_all <- 
+  dvc %>% 
+  select( "ID", "EID", "BREED", "BIRTH", "Event", "DIM", "Date", "Remark", "Protocols")
+
+#pivot wider to have one line with all data for each calf
+
+dvc_all2 <- 
+  dvc_all %>% 
+  filter(Event %in% c("PNEU", "BLOAT", "COMMENT", "SCOURS", "DIED"))
+
+#this code limits to the first three occurances of any event
+
+dvc_limited <- dvc_all2 %>%
+  arrange(ID, Event, Date) %>%   # ensure chronological order
+  group_by(ID, Event) %>%
+  slice_head(n = 3) %>%
+  ungroup()
+
+
+dvc_num <- 
+  dvc_limited %>% 
+  group_by(ID, EID, Event) %>% 
+  mutate(Event_num = row_number()) %>% 
+  ungroup() %>% 
+  unite(Event_tag, Event, Event_num, sep="")
+
+dvc_wide<-
+  dvc_num %>% 
+  pivot_wider(
+    id_cols = c(ID, EID),
+    names_from = Event_tag, 
+    values_from = c(Date, Remark)
+  )
+
+#now I want to re-order the data so it makes some sense
+
+dvcnew_wide<-
+  dvc_wide %>% 
+  select(
+    ID, EID, Date_PNEU1, Remark_PNEU1, Date_PNEU2, Remark_PNEU2, Date_PNEU3, Remark_PNEU3, Date_SCOURS1, Remark_SCOURS1, Date_SCOURS2, Remark_SCOURS2, Date_BLOAT1, Remark_BLOAT1, Date_BLOAT2, Remark_BLOAT2, Date_DIED1, Remark_DIED1
+  )
+```
+
+### TCC1 and TCC2 - merged!
+
+```{r}
+tcc1 <- read_csv('data/TCC 1.csv')
+tcc2 <- read_csv('data/TCC 2.csv')
+
+#merge both for all the data: 
+
+TCC_all <- 
+  bind_rows(
+    tcc1 = tcc1, 
+    tcc2 = tcc2, 
+    .id = "source"
+  )
+
+
+#select only columns that are needed
+
+TCC_all <- 
+  TCC_all %>% 
+  select( "ID", "EID", "BREED", "BIRTH", "Event", "DIM", "Date", "Remark", "Protocols")
+
+#pivot wider to have one line with all data for each calf
+
+tcc_all <- 
+  TCC_all %>% 
+  filter(Event %in% c("PNEU", "BLOAT", "COMMENT", "SCOURS", "DIED"))
+
+#this code limits to the first three occurances of any event
+
+tcc_limited <- tcc_all %>%
+  arrange(ID, Event, Date) %>%   # ensure chronological order
+  group_by(ID, Event) %>%
+  slice_head(n = 3) %>%
+  ungroup()
+
+
+tcc_num <- 
+  tcc_limited %>% 
+  group_by(ID, EID, Event) %>% 
+  mutate(Event_num = row_number()) %>% 
+  ungroup() %>% 
+  unite(Event_tag, Event, Event_num, sep="")
+
+tcc_wide<-
+  tcc_num %>% 
+  pivot_wider(
+    id_cols = c(ID, EID), 
+    names_from = Event_tag, 
+    values_from = c(Date, Remark)
+  )
+
+#now I want to re-order the data so it makes some sense
+
+tccnew_wide<-
+  tcc_wide %>% 
+  select(
+    ID, EID, Date_PNEU1, Remark_PNEU1, Date_PNEU2, Remark_PNEU2, Date_PNEU3, Remark_PNEU3, Date_SCOURS1, Remark_SCOURS1, Date_SCOURS2, Remark_SCOURS2, Date_BLOAT1, Remark_BLOAT1, Date_BLOAT2, Remark_BLOAT2, Date_DIED1, Remark_DIED1
+  )
+```
+
+### Bind together
+
+```{r}
+
+STACK <- 
+  bind_rows(
+    dvcnew_wide = dvcnew_wide, 
+    tccnew_wide = tccnew_wide, 
+    .id = "source"
+  )
+
+write.csv(x = STACK, file = "data/stack.csv")
+
+
+STACK %>%
+  group_by(ID) %>%
+  summarize(n = n()) %>%
+  filter(n > 1)
+
+#now I have all calves from DVC and TCC that could possibly be on the list and in the trial. Now I need to merge with the MOC data set over in the other Quarto Document. 
+
+cleaned <- STACK %>%
+  group_by(ID) %>%        
+  filter(!(source == "tccnew_wide" & duplicated(ID))) %>%
+  ungroup()
+
+
+cleaned %>%
+  group_by(ID) %>%
+  summarize(n = n()) %>%
+  filter(n > 1)
+
+write.csv(x = cleaned, file = "data/clean.csv")
+```
+
+### DVC Take 2 with new switch (6.1.25 - 11.20.25)
+
+```{r}
+#need to bring in all events, pivot wide (with the events we want) and then merge onto the "all" data set. This next bit will be to play around with a smaller pivotwide to makes sure it is working. 
+
+dvc2 <- read_csv('data/DVC take2.csv')
+
+#select only columns that are needed
+
+dvc2_all <- 
+  dvc2 %>% 
+  select( "ID", "EID", "BREED", "BIRTH", "Event", "DIM", "Date", "Remark", "Protocols")
+
+#pivot wider to have one line with all data for each calf
+
+dvc2_all2 <- 
+  dvc2_all %>% 
+  filter(Event %in% c("PNEU", "BLOAT", "COMMENT", "SCOURS", "DIED"))
+
+#this code limits to the first three occurances of any event
+
+dvc2_limited <- dvc2_all2 %>%
+  arrange(ID, Event, Date) %>%   # ensure chronological order
+  group_by(ID, Event) %>%
+  slice_head(n = 3) %>%
+  ungroup()
+
+
+dvc2_num <- 
+  dvc2_limited %>% 
+  group_by(ID, EID, Event) %>% 
+  mutate(Event_num = row_number()) %>% 
+  ungroup() %>% 
+  unite(Event_tag, Event, Event_num, sep="")
+
+dvc2_wide<-
+  dvc2_num %>% 
+  pivot_wider(
+    id_cols = c(ID, EID),
+    names_from = Event_tag, 
+    values_from = c(Date, Remark)
+  )
+
+#now I want to re-order the data so it makes some sense
+
+dvcnew2_wide<-
+  dvc2_wide %>% 
+  select(
+    ID, EID, Date_PNEU1, Remark_PNEU1, Date_PNEU2, Remark_PNEU2, Date_PNEU3, Remark_PNEU3, Date_SCOURS1, Remark_SCOURS1, Date_SCOURS2, Remark_SCOURS2, Date_BLOAT1, Remark_BLOAT1, Date_BLOAT2, Remark_BLOAT2, Date_DIED1, Remark_DIED1
+  )
+```
+
+Compare DVC1 and DVC2
+
+```{r}
+
+identical(dvcnew2_wide, dvcnew_wide)    
+all.equal(dvcnew2_wide, dvcnew_wide) 
+
+
+write.csv(x = dvcnew2_wide, file = "data/dvc2.csv")
+write.csv(x = dvcnew_wide, file = "data/dvc1.csv")
+
+```
