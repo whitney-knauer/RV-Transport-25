@@ -131,11 +131,14 @@ full_new<-
   mutate(
     diaload = as.numeric(LOADT - BIRTH), 
     diaARR = as.numeric (ARR - BIRTH), 
-    dfaP1 = as.numeric(Date_PNEU1 - ARR), 
+    dfaP1 = as.numeric(Date_PNEU1 - ARR),
+    dbtwP12 = as.numeric(Date_PNEU2-Date_PNEU1),
+    dbtwP23 = as.numeric(Date_PNEU3-Date_PNEU2),
     dfaP2 = as.numeric(Date_PNEU2 - ARR), 
     dfaP3 = as.numeric(Date_PNEU3 - ARR), 
     dfaD1 = as.numeric(Date_SCOURS1 - ARR),
     dfaD2 = as.numeric(Date_SCOURS2 - ARR), 
+    dbtwD12 = as.numeric(Date_SCOURS2 - Date_SCOURS1),
     dfaB1 = as.numeric(Date_BLOAT1 - ARR), 
     dfaB2 = as.numeric(Date_BLOAT2 - ARR), 
     dfaDIED = as.numeric(Date_DIED1 - ARR))
@@ -217,8 +220,11 @@ full_new %>%
   summarize(
     prop_P1 = mean(PN1),
     avg_PI = mean(dfaP1, na.rm=TRUE),
+    btwP12 = mean(dbtwP12, na.rm=TRUE),
+    btwP23 = mean(dbtwP23, na.rm=TRUE),
     prop_DIA = mean(DIA1), 
     avg_DIA = mean(dfaD1, na.rm=TRUE), 
+    btwD12 = mean(dbtwD12, na.rm=TRUE),
     prop_B = mean(B1), 
     avg_B = mean(dfaB1, na.rm=TRUE), 
     prop_DED = mean(DIED), 
