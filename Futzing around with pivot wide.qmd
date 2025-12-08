@@ -61,6 +61,13 @@ new <-
   test %>% 
   select( "ID", "EID", "BREED", "BIRTH", "Event", "DIM", "Date", "Remark", "Protocols")
 
+#need to turn date into an actual date so can sort by it? 
+
+new <- new %>%
+  mutate(
+    Date = mdy(Date))
+  
+
 #pivot wider to have one line with all data for each calf
 
 #filter for only the events I care about
@@ -117,6 +124,11 @@ dvc <- read_csv('data/DVC Events 6125 to 112025.csv')
 dvc_all <- 
   dvc %>% 
   select( "ID", "EID", "BREED", "BIRTH", "Event", "DIM", "Date", "Remark", "Protocols")
+
+#need to be dates so that recognized as such and can sort appropriately!
+dvc_all <- dvc_all %>%
+  mutate(
+    Date = mdy(Date))
 
 #pivot wider to have one line with all data for each calf
 
@@ -178,6 +190,10 @@ TCC_all <-
 TCC_all <- 
   TCC_all %>% 
   select( "ID", "EID", "BREED", "BIRTH", "Event", "DIM", "Date", "Remark", "Protocols")
+
+TCC_all <- TCC_all %>%
+  mutate(
+    Date = mdy(Date))
 
 #pivot wider to have one line with all data for each calf
 
@@ -265,6 +281,10 @@ dvc2 <- read_csv('data/DVC take2.csv')
 dvc2_all <- 
   dvc2 %>% 
   select( "ID", "EID", "BREED", "BIRTH", "Event", "DIM", "Date", "Remark", "Protocols")
+
+dvc2_all <- dvc2_all %>%
+  mutate(
+    Date = mdy(Date))
 
 #pivot wider to have one line with all data for each calf
 

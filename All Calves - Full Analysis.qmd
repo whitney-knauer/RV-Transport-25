@@ -102,16 +102,7 @@ full_new <- full_new %>%
 full_new <- full_new %>%
   mutate(
     BIRTH = mdy(BIRTH),
-    LOADT = mdy(LOADT), 
-    Date_PNEU1 = mdy(Date_PNEU1), 
-    Date_PNEU2 = mdy(Date_PNEU2), 
-    Date_PNEU3 = mdy(Date_PNEU3), 
-    Date_SCOURS1 = mdy(Date_SCOURS1), 
-    Date_SCOURS2 = mdy(Date_SCOURS2), 
-    Date_BLOAT1 = mdy(Date_BLOAT1), 
-    Date_BLOAT2 = mdy(Date_BLOAT2), 
-    Date_DIED1 = mdy(Date_DIED1)
-  )
+    LOADT = mdy(LOADT))
 
 #create some new variables realted to days in age at stuff and age from arrival at stuff. 
 
@@ -161,18 +152,73 @@ write.csv(x = datachecks, file = "data/trailer loads.csv")
 #need to check with Brett on the trailer load data, looks like there are ~16ish loads for each SD, which is btw 2000-3000 calves per group.
 
 
-#add some new variables like pn1yn etc for all treatments
+#add some new variables like pn1yn etc for all treatments but need to use days between for PN1/2/3
 
 full_new<- full_new %>% 
   mutate(
-   PN1 = if_else(dfaP1>=0, 1, 0) %>% replace_na(0), 
+   PN1a = if_else(dfaP1>=0, 1, 0) %>% replace_na(0), 
    PN2 = if_else(dfaP2>=0, 1, 0)%>% replace_na(0), 
-   PN3 = if_else(dfaP3>=0, 1, 0)%>% replace_na(0), 
    DIA1 = ifelse(dfaD1>=0, 1, 0)%>% replace_na(0), 
    DIA2 = ifelse(dfaD2>=0, 1, 0)%>% replace_na(0), 
    B1 = ifelse(dfaB1>=0, 1, 0)%>% replace_na(0), 
    B2 = ifelse(dfaB2>=0, 1, 0)%>% replace_na(0), 
    DIED = ifelse(dfaDIED>=0, 1, 0)%>% replace_na(0))
+
+#add some new variables like pn1yn etc for all treatments but need to use days between for PN1/2/3
+##WORKING ON THIS NEED TO MAKE IT AND/OR statement I think? 
+#new resp event if >7d from previous treatment
+
+#the n doesn't change of total treatment events if use 7 or 5d. Wonder what happens if use 14d? 
+
+FINAL7_new<- full_new %>% 
+  mutate(
+    PN2a = case_when(
+      PN2 == 1 & dbtwP12 >= 7 | PN3 == 1 & dbtwP23 >= 7    ~ 1, 
+      PN2 == 1 & dbtwP12 <  7 | PN2 == 0  | PN3 == 1 & dbtwP23 < 7 ~ 0))
+
+FINAL7_new<- FINAL_new %>% 
+  mutate(
+    Date_PN1a = Date_PNEU1)
+
+FINAL7_new <- FINAL_new %>% 
+  mutate(
+    Date_PN2a = case_when(
+      PN2a == 1 & dbtwP12 <7 ~ FINAL_new$Date_PNEU3, 
+      PN2a == 1 & dbtwP12 >= 7 ~ FINAL_new$Date_PNEU2))
+
+
+
+FINAL14_new<- full_new %>% 
+  mutate(
+    PN2a = case_when(
+      PN2 == 1 & dbtwP12 >= 14 | PN3 == 1 & dbtwP23 >= 14    ~ 1, 
+      PN2 == 1 & dbtwP12 <  14 | PN2 == 0  | PN3 == 1 & dbtwP23 < 14 ~ 0))
+
+FINAL14_new<- FINAL_new %>% 
+  mutate(
+    Date_PN1a = Date_PNEU1)
+
+FINAL14_new <- FINAL_new %>% 
+  mutate(
+    Date_PN2a = case_when(
+      PN2a == 1 & dbtwP12 <14 ~ FINAL_new$Date_PNEU3, 
+      PN2a == 1 & dbtwP12 >= 14 ~ FINAL_new$Date_PNEU2))
+
+
+FINAL14_new %>% 
+  summarize(
+    sum(PN1a), 
+    sum(PN2a))
+
+FINAL7_new %>% 
+  summarize(
+    sum(PN1a), 
+    sum(PN2a))
+
+
+
+
+write.csv(x = FINAL7_new, file = "data/PNchecks.csv")
 
 #create a data set for 60d and for 30d? 
 #need to also consider the exclusions (n=16 trailers per treatment group)
@@ -215,12 +261,14 @@ full |>
     stp = mean(BRTHW))
 
 
-full_new %>% 
+FINAL_new %>% 
   group_by(TRL2) %>% 
   summarize(
-    prop_P1 = mean(PN1),
+    prop_P1 = mean(PN1a, na.rm=TRUE),
     avg_PI = mean(dfaP1, na.rm=TRUE),
     btwP12 = mean(dbtwP12, na.rm=TRUE),
+    prop_P2 = mean(PN2a, na.rm=TRUE),
+    avg_P2 = mean(dfaP2, na.rm=TRUE), 
     btwP23 = mean(dbtwP23, na.rm=TRUE),
     prop_DIA = mean(DIA1), 
     avg_DIA = mean(dfaD1, na.rm=TRUE), 
