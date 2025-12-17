@@ -157,7 +157,8 @@ write.csv(x = datachecks, file = "data/trailer loads.csv")
 full_new<- full_new %>% 
   mutate(
    PN1a = if_else(dfaP1>=0, 1, 0) %>% replace_na(0), 
-   PN2 = if_else(dfaP2>=0, 1, 0)%>% replace_na(0), 
+   PN2 = if_else(dfaP2>=0, 1, 0)%>% replace_na(0),
+   PN3 = if_else(dfaP3>=0, 1, 0) %>% replace_na(0), 
    DIA1 = ifelse(dfaD1>=0, 1, 0)%>% replace_na(0), 
    DIA2 = ifelse(dfaD2>=0, 1, 0)%>% replace_na(0), 
    B1 = ifelse(dfaB1>=0, 1, 0)%>% replace_na(0), 
@@ -170,21 +171,23 @@ full_new<- full_new %>%
 
 #the n doesn't change of total treatment events if use 7 or 5d. Wonder what happens if use 14d? 
 
+
 FINAL7_new<- full_new %>% 
   mutate(
     PN2a = case_when(
       PN2 == 1 & dbtwP12 >= 7 | PN3 == 1 & dbtwP23 >= 7    ~ 1, 
       PN2 == 1 & dbtwP12 <  7 | PN2 == 0  | PN3 == 1 & dbtwP23 < 7 ~ 0))
 
-FINAL7_new<- FINAL_new %>% 
+
+FINAL7_new<- FINAL7_new %>% 
   mutate(
     Date_PN1a = Date_PNEU1)
 
-FINAL7_new <- FINAL_new %>% 
+FINAL7_new <- FINAL7_new %>% 
   mutate(
     Date_PN2a = case_when(
-      PN2a == 1 & dbtwP12 <7 ~ FINAL_new$Date_PNEU3, 
-      PN2a == 1 & dbtwP12 >= 7 ~ FINAL_new$Date_PNEU2))
+      PN2a == 1 & dbtwP12 <7 ~ FINAL7_new$Date_PNEU3, 
+      PN2a == 1 & dbtwP12 >= 7 ~ FINAL7_new$Date_PNEU2))
 
 
 
@@ -194,16 +197,24 @@ FINAL14_new<- full_new %>%
       PN2 == 1 & dbtwP12 >= 14 | PN3 == 1 & dbtwP23 >= 14    ~ 1, 
       PN2 == 1 & dbtwP12 <  14 | PN2 == 0  | PN3 == 1 & dbtwP23 < 14 ~ 0))
 
-FINAL14_new<- FINAL_new %>% 
+
+
+FINAL14_new<- FINAL14_new %>% 
   mutate(
     Date_PN1a = Date_PNEU1)
 
-FINAL14_new <- FINAL_new %>% 
+FINAL14_new <- FINAL14_new %>% 
   mutate(
     Date_PN2a = case_when(
-      PN2a == 1 & dbtwP12 <14 ~ FINAL_new$Date_PNEU3, 
-      PN2a == 1 & dbtwP12 >= 14 ~ FINAL_new$Date_PNEU2))
+      PN2a == 1 & dbtwP12 <14 ~ FINAL14_new$Date_PNEU3, 
+      PN2a == 1 & dbtwP12 >= 14 ~ FINAL14_new$Date_PNEU2))
 
+
+FINAL7_new %>% 
+  summarize(
+    sum(PN1a), 
+    sum(PN2a), 
+    sum(DIA1))
 
 FINAL14_new %>% 
   summarize(
@@ -211,19 +222,35 @@ FINAL14_new %>%
     sum(PN2a))
 
 FINAL7_new %>% 
-  summarize(
-    sum(PN1a), 
-    sum(PN2a))
+  group_by(Remark_PNEU1) %>% 
+  count()
 
-
+FINAL7_new %>% 
+  group_by(Remark_PNEU2) %>% 
+  count()
 
 
 write.csv(x = FINAL7_new, file = "data/PNchecks.csv")
 
-#create a data set for 60d and for 30d? 
-#need to also consider the exclusions (n=16 trailers per treatment group)
+#PN1 and PN2 are now correct! Yay!
    
-   
+
+
+#SCOURS
+#now need to figure out the calves who had scours treatment prior to shipment (what were they treated with?) and likely need to exlcude them (n=944 total calves; 4% of data)
+
+
+FINAL7_new %>% 
+  filter(dfaD1<0) %>% 
+  group_by(Remark_SCOURS1) %>% 
+  count()
+
+FINAL7_new %>% 
+  filter(dfaD1<0) %>% 
+  group_by(Remark_SCOURS2) %>% 
+  count()
+
+  
 ```
 
 ### Summaries with Calf Key
