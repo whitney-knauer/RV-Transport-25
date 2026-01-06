@@ -40,6 +40,8 @@ library(lubridate)
 library(nlme)
 library(extrafont)
 library(stringi)
+library(survival)
+library(survminer)
 ```
 
 ### Data Steps
@@ -151,10 +153,32 @@ write.csv(x = datachecks, file = "data/trailer loads.csv")
 
 #need to check with Brett on the trailer load data, looks like there are ~16ish loads for each SD, which is btw 2000-3000 calves per group.
 
+#got the trailer loads figured out! Now need to pull in the data to merge on LOAD so can remove data that don't need (~10,000 calves)
+
+load <- read_csv('data/Trailer Load FINAL.csv')
+
+load %>% 
+  summarize(
+    sum = sum(n))
+
+
+
+full_new1 <-  full_new %>% 
+  inner_join(load, by = "LOAD")
+
+
+
+```
+
+#### Messing around with Pneu/Scour
+
+```{r}
+#| warning: false
+#| echo: false
 
 #add some new variables like pn1yn etc for all treatments but need to use days between for PN1/2/3
 
-full_new<- full_new %>% 
+full_new1<- full_new1 %>% 
   mutate(
    PN1a = if_else(dfaP1>=0, 1, 0) %>% replace_na(0), 
    PN2 = if_else(dfaP2>=0, 1, 0)%>% replace_na(0),
@@ -172,7 +196,7 @@ full_new<- full_new %>%
 #the n doesn't change of total treatment events if use 7 or 5d. Wonder what happens if use 14d? 
 
 
-FINAL7_new<- full_new %>% 
+FINAL7_new<- full_new1 %>% 
   mutate(
     PN2a = case_when(
       PN2 == 1 & dbtwP12 >= 7 | PN3 == 1 & dbtwP23 >= 7    ~ 1, 
@@ -191,7 +215,7 @@ FINAL7_new <- FINAL7_new %>%
 
 
 
-FINAL14_new<- full_new %>% 
+FINAL14_new<- full_new1 %>% 
   mutate(
     PN2a = case_when(
       PN2 == 1 & dbtwP12 >= 14 | PN3 == 1 & dbtwP23 >= 14    ~ 1, 
@@ -237,73 +261,703 @@ write.csv(x = FINAL7_new, file = "data/PNchecks.csv")
 
 
 #SCOURS
-#now need to figure out the calves who had scours treatment prior to shipment (what were they treated with?) and likely need to exlcude them (n=944 total calves; 4% of data)
+#now need to figure out the calves who had scours treatment prior to shipment (what were they treated with?) and likely need to exlcude them (n=420 total calves; 4% of data) and control for them when evaluating PN?
 
 
 FINAL7_new %>% 
   filter(dfaD1<0) %>% 
-  group_by(Remark_SCOURS1) %>% 
+ # group_by(Remark_SCOURS1) %>% 
   count()
 
 FINAL7_new %>% 
   filter(dfaD1<0) %>% 
-  group_by(Remark_SCOURS2) %>% 
+  group_by(SD) %>% 
   count()
 
-  
+FINAL7_new %>% 
+  group_by(SD) %>% 
+  count()
+
+
+#make new dfaPN1a and dfaPN2a
+
+FINAL7_new<- 
+  FINAL7_new %>% 
+  mutate(
+    dfaPN1a = as.numeric(Date_PN1a - ARR), 
+    dfaPN2a = as.numeric (Date_PN2a - ARR))
+
+#new variable to say if calves were treated prior to departure for DIA (4% of calves, same in all groups)
+
+FINAL7_new <- FINAL7_new %>% 
+  mutate(
+    diaex = 
+      case_when(is.na(dfaD1) ~ 0,
+                dfaD1<0 ~  1, 
+                dfaD1>= 0 ~ 0))
+
+FINAL7_new %>% 
+  summarize(
+    sum = sum(diaex, na.rm=TRUE))
+
+#serum total protein, messing with
+
+FINAL7_new <-FINAL7_new %>% 
+  mutate(
+    stp = SERUM/10)
+
+
 ```
 
-### Summaries with Calf Key
+### Descriptive Analysis
 
-This description is for all calves with a TRL2 item (n=21255)
+#### General Description
+
+This description is for all calves with a TRL2 item (n=10324)
 
 ```{r}
 #| warning: false
 #| echo: false
 
-full|> 
-  group_by(TRL2) |> 
+
+
+FINAL7_new %>% 
+  group_by(SD) %>% 
   summarize (Count = n())
 
-full |> 
-  group_by(TRL2, sex) |> 
+FINAL7_new |> 
+  group_by(SD, Sex) |> 
   summarize (Count = n())
 
-full |> 
-  group_by(TRL2, sex, BREED) |> 
+FINAL7_new |> 
+  group_by(sbTRT) |> 
   summarize (Count = n())
 
-full |> 
-  group_by(TRL2, BREED) |> 
+FINAL7_new %>% 
+  group_by(SORCE) %>% 
   summarize (Count = n())
 
-full |> 
-  group_by(TRL2) |> 
+
+FINAL7_new |> 
+  group_by(SD) |> 
   summarize (
-    stp = mean(BRTHW))
+    bwt = mean(BRTHW), 
+    bwtsd = sd(BRTHW),
+    arrage = mean(diaARR), 
+    arrA   = sd (diaARR), 
+    loadage = mean(diaload), 
+    sdload  = sd (diaload))
 
-full |> 
-  group_by(TRL2, BREED) |> 
+FINAL7_new |>
+  filter(stp > 0) |>
+  group_by(SD) |>
+  summarize(
+    count = n(),
+    mean_stp = mean(stp, na.rm = TRUE),
+    sd_stp   = sd(stp, na.rm = TRUE),
+    .groups = "drop")
+
+FINAL7_new |> 
+  filter(stp!=0) %>% 
+  ggplot(mapping=aes(x=stp))+
+  theme_classic()+
+  geom_histogram(binwidth=0.2, 
+                 fill="skyblue", 
+                 color="black", 
+                 alpha=0.7)+
+  labs(title = "Histogram of stp")
+
+
+FINAL7_new |> 
+  group_by(SD, DB) |> 
   summarize (
-    stp = mean(BRTHW))
+    bwt = mean(BRTHW), 
+    bwtsd = sd(BRTHW),
+    arrage = mean(diaARR), 
+    arrA   = sd (diaARR),
+    loadage = mean(diaload), 
+    sdload  = sd (diaload))
+
+FINAL7_new |>
+  filter(stp > 0) |>
+  group_by(SD, DB) |>
+  summarize(
+    count = n(),
+    mean_stp = mean(stp, na.rm = TRUE),
+    sd_stp   = sd(stp, na.rm = TRUE),
+    .groups = "drop")
 
 
-FINAL_new %>% 
-  group_by(TRL2) %>% 
+FINAL7_new %>% 
+  group_by(SD) %>% 
   summarize(
     prop_P1 = mean(PN1a, na.rm=TRUE),
-    avg_PI = mean(dfaP1, na.rm=TRUE),
-    btwP12 = mean(dbtwP12, na.rm=TRUE),
     prop_P2 = mean(PN2a, na.rm=TRUE),
-    avg_P2 = mean(dfaP2, na.rm=TRUE), 
-    btwP23 = mean(dbtwP23, na.rm=TRUE),
-    prop_DIA = mean(DIA1), 
-    avg_DIA = mean(dfaD1, na.rm=TRUE), 
-    btwD12 = mean(dbtwD12, na.rm=TRUE),
-    prop_B = mean(B1), 
-    avg_B = mean(dfaB1, na.rm=TRUE), 
+    meandfaP1 = mean(dfaPN1a, na.rm = TRUE), 
+    meandfaP2 = mean(dfaPN2a, na.rm = TRUE),
     prop_DED = mean(DIED), 
     avg_DED = mean(dfaDIED, na.rm=TRUE))
 
 
+FINAL7_new %>% 
+  group_by(SD, DBxS) %>% 
+  summarize(
+    prop_P1 = mean(PN1a, na.rm=TRUE),
+    prop_P2 = mean(PN2a, na.rm=TRUE),
+    meandfaP1 = mean(dfaPN1a, na.rm = TRUE), 
+    meandfaP2 = mean(dfaPN2a, na.rm = TRUE),
+    prop_DED = mean(DIED), 
+    avg_DED = mean(dfaDIED, na.rm=TRUE))
+
+FINAL7_new %>% 
+  filter (diaex == 0) %>% 
+  group_by(SD) %>% 
+  summarize(
+    prop_DIA = mean(DIA1, na.rm=TRUE), 
+    meandfaD1 = mean(dfaD1, na.rm=TRUE))
+
+
+FINAL7_new %>% 
+  filter (diaex == 0) %>% 
+  group_by(SD, DB) %>% 
+  summarize(
+    prop_DIA = mean(DIA1, na.rm=TRUE), 
+    meandfaD1 = mean(dfaD1, na.rm=TRUE))
+
+
+FINAL7_new %>% 
+  filter (diaex == 1) %>% 
+  group_by(SD) %>% 
+  summarize(
+    prop_DIA = mean(DIA1, na.rm=TRUE), 
+    meandfaD1 = mean(dfaD1, na.rm=TRUE), 
+     prop_P1 = mean(PN1a, na.rm=TRUE))
+
+
+FINAL7_new %>% 
+  filter (diaex == 1) %>% 
+  group_by(SD, DB) %>% 
+  summarize(
+    prop_DIA = sum(diaex, na.rm=TRUE), 
+    meandfaD1 = mean(dfaD1, na.rm=TRUE))
+
+
+
+
+```
+
+#### Load summaries
+
+```{r}
+#| warning: false
+#| echo: false
+
+
+
+load %>% 
+  group_by(SD) %>% 
+  summarize (Count = n(), 
+             total = sum(n), 
+             mean = mean(n),
+             sd   = sd(n))
+
+load %>% 
+  group_by(SD, DBxS) %>% 
+  summarize (Count = n(), 
+             total = sum(n), 
+             mean = mean(n),
+             sd   = sd(n))
+
+```
+
+#### Health Treatment to 60d
+
+```{r}
+#| warning: false
+#| echo: false
+
+
+#need to right censor data to 30 and 60d (?) and clean up the data set becasue there's too many variables. 
+
+
+#create new variables DIA30; PNEU30, PNEU60 such that if the calf has a treatment and is less than the prescribed days, then the day is dfaPN1a but otherwise, it's 30 or 60 to allow sensoring. 
+
+
+FINAL7_new <- FINAL7_new %>% 
+  mutate(
+    DIA30 = if_else(diaex == 0,
+                    coalesce(dfaD1, 30),
+                    NA_real_))
+
+
+FINAL7_new <- FINAL7_new %>% 
+  mutate(
+    D30 = if_else(DIA30 < 30, 1L, 0L))
+
+
+
+FINAL7_new <- FINAL7_new %>% 
+  mutate(
+    PNEU30 = pmin(dfaPN1a, 30, na.rm = TRUE))
+
+FINAL7_new <- FINAL7_new %>% 
+  mutate(
+    P30 = if_else(PNEU30 < 30, 1L, 0L))
+
+
+FINAL7_new <- FINAL7_new %>% 
+  mutate(
+    PNEU60 = pmin(dfaPN1a, 60, na.rm = TRUE))
+
+FINAL7_new <- FINAL7_new %>% 
+  mutate(
+    P60 = if_else(PNEU60 < 60, 1L, 0L))
+
+
+#mortality
+
+FINAL7_new <- FINAL7_new %>% 
+  mutate(
+    DED30 = pmin(dfaDIED, 30, na.rm = TRUE))
+
+FINAL7_new <- FINAL7_new %>% 
+  mutate(
+    D30yn = if_else(DED30 < 30, 1L, 0L))
+
+
+FINAL7_new <- FINAL7_new %>% 
+  mutate(
+    DED60 = pmin(dfaDIED, 60, na.rm = TRUE))
+
+FINAL7_new <- FINAL7_new %>% 
+  mutate(
+    D60yn = if_else(DED60 < 60, 1L, 0L))
+
+
+
+#now clean up the data set!
+
+FINAL_Analysis <- FINAL7_new %>% 
+  select(ID, sex, Breed2, stp, BRTHW, SORCE, SD, DB, diaload, diaARR, PN1a, PN2a, DIA1, D30, P30, P60, D30yn, D60yn, diaex, DIA30, PNEU30, PNEU60, DED30, DED60, Remark_PNEU1, Remark_DIED1)
+  
+
+#Scours
+
+FINAL_Analysis %>% 
+  filter(diaex == 0) %>% 
+  group_by(SD) %>% 
+  summarize(
+    count = n(),
+    prop_DIA = mean(DIA1, na.rm=TRUE), 
+    sum_DIA  = sum(DIA1, na.rm=TRUE))
+
+FINAL_Analysis %>% 
+  filter(diaex == 0) %>% 
+  group_by(SD, DB) %>% 
+  summarize(
+    count = n(),
+    prop_DIA = mean(DIA1, na.rm=TRUE), 
+    sum_DIA  = sum(DIA1, na.rm=TRUE))
+
+
+FINAL_Analysis %>% 
+  filter(diaex == 0) %>% 
+  group_by(SD, DIA1) %>% 
+  summarize(
+    dfa_mean = mean(DIA30),
+    dfa_sd   = sd(DIA30))
+
+
+
+#PNEU30
+
+
+FINAL_Analysis %>% 
+  group_by(SD) %>% 
+  summarize(
+    count = n(),
+    prop_PN1 = mean(P30, na.rm=TRUE), 
+    sum_PN1  = sum(P30, na.rm=TRUE))
+
+FINAL_Analysis %>% 
+  group_by(SD, DB) %>% 
+  summarize(
+    count = n(),
+    prop_PN1 = mean(P30, na.rm=TRUE), 
+    sum_PN1  = sum(P30, na.rm=TRUE))
+
+FINAL_Analysis %>% 
+  group_by(SD, PN1a) %>% 
+  summarize(
+    dfa_mean = mean(PNEU30),
+    dfa_sd   = sd(PNEU30))
+
+FINAL_Analysis %>% 
+  filter(P60 == 1) %>% 
+  group_by(Remark_PNEU1, DB) %>% 
+  summarize(
+    count = n())
+
+
+#PNEU 60d
+FINAL_Analysis %>% 
+  group_by(SD) %>% 
+  summarize(
+    count = n(),
+    prop_PN1 = mean(P60, na.rm=TRUE), 
+    sum_PN1  = sum(P60, na.rm=TRUE))
+
+FINAL_Analysis %>% 
+  group_by(SD, DB) %>% 
+  summarize(
+    count = n(),
+    prop_PN1 = mean(P60, na.rm=TRUE), 
+    sum_PN1  = sum(P60, na.rm=TRUE))
+
+FINAL_Analysis %>% 
+  group_by(SD, PN1a) %>% 
+  summarize(
+    dfa_mean = mean(PNEU60),
+    dfa_sd   = sd(PNEU60))
+
+#MORTALITY
+#30d mortality
+
+FINAL_Analysis %>% 
+  group_by(SD) %>% 
+  summarize(
+    count = n(),
+    prop_DED1 = mean(D30yn, na.rm=TRUE), 
+    sum_DED1  = sum(D30yn, na.rm=TRUE))
+
+FINAL_Analysis %>% 
+  group_by(SD, DB) %>% 
+  summarize(
+    count = n(),
+    prop_DED1 = mean(D30yn, na.rm=TRUE), 
+    sum_DED1  = sum(D30yn, na.rm=TRUE))
+
+FINAL_Analysis %>% 
+  group_by(SD, D30yn) %>% 
+  summarize(
+    dfa_mean = mean(DED30),
+    dfa_sd   = sd(DED30))
+
+FINAL_Analysis %>% 
+  filter(D60yn == 1) %>% 
+  group_by(Remark_DIED1) %>% 
+  summarize(
+    count = n())
+
+
+#DEAD 60d
+FINAL_Analysis %>% 
+  group_by(SD) %>% 
+  summarize(
+    count = n(),
+    prop_DED1 = mean(D60yn, na.rm=TRUE), 
+    sum_DED1  = sum(D60yn, na.rm=TRUE))
+
+FINAL_Analysis %>% 
+  group_by(SD, DB) %>% 
+  summarize(
+    count = n(),
+    prop_DED1 = mean(D60yn, na.rm=TRUE), 
+    sum_DED1  = sum(D60yn, na.rm=TRUE))
+
+FINAL_Analysis %>% 
+  group_by(SD, D60yn) %>% 
+  summarize(
+    dfa_mean = mean(DED60),
+    dfa_sd   = sd(DED60))
+
+
+```
+
+### KM Curves for Morbidity and Mortality
+
+```{r}
+
+
+
+#scours to 30d. 
+FINAL_Analysis_filt <- FINAL_Analysis %>% 
+  filter(diaex != 1)
+
+surv_obj <- Surv(
+  time  = FINAL_Analysis_filt$DIA30,
+  event = FINAL_Analysis_filt$D30)
+
+fit <- survfit(
+  surv_obj ~ SD,
+  data = FINAL_Analysis_filt)
+
+ggsurvplot(
+  fit,
+  data = FINAL_Analysis_filt,
+  pval = TRUE,
+  conf.int = TRUE,
+  risk.table = FALSE,
+  xlab = "Time (days)",
+  ylab = "Survival Probability",
+  xlim = c(0, 28),
+  break.time.by = 7
+)
+
+
+table(FINAL_Analysis_filt$D30)
+
+
+
+
+
+
+#scours to 30d.DAIRY vs. BEEF 
+FINAL_Analysis_filt <- FINAL_Analysis %>% 
+  filter(diaex != 1)
+
+surv_obj <- Surv(
+  time  = FINAL_Analysis_filt$DIA30,
+  event = FINAL_Analysis_filt$D30)
+
+fit <- survfit(
+  surv_obj ~ DB,
+  data = FINAL_Analysis_filt)
+
+ggsurvplot(
+  fit,
+  data = FINAL_Analysis_filt,
+  pval = TRUE,
+  conf.int = TRUE,
+  risk.table = FALSE,
+  xlab = "Time (days)",
+  ylab = "Survival Probability",
+  xlim = c(0, 28),
+  break.time.by = 7
+)
+
+
+table(FINAL_Analysis_filt$D30)
+
+```
+
+```{r}
+
+
+#resp to 30d. 
+
+surv_obj <- Surv(
+  time  = FINAL_Analysis$PNEU30,
+  event = FINAL_Analysis$P30)
+
+fit <- survfit(
+  surv_obj ~ SD,
+  data = FINAL_Analysis)
+
+ggsurvplot(
+  fit,
+  data = FINAL_Analysis,
+  pval = TRUE,
+  conf.int = TRUE,
+  risk.table = FALSE,
+  xlab = "Time (days)",
+  ylab = "Survival Probability",
+  xlim = c(0, 28),
+  break.time.by = 7
+)
+
+
+table(FINAL_Analysis_filt$P30)
+
+
+
+
+
+#resp to 30d. DAIRY vs. BEEF
+
+surv_obj <- Surv(
+  time  = FINAL_Analysis$PNEU30,
+  event = FINAL_Analysis$P30)
+
+fit <- survfit(
+  surv_obj ~ DB,
+  data = FINAL_Analysis)
+
+ggsurvplot(
+  fit,
+  data = FINAL_Analysis,
+  pval = TRUE,
+  conf.int = TRUE,
+  risk.table = FALSE,
+  xlab = "Time (days)",
+  ylab = "Survival Probability",
+  xlim = c(0, 28),
+  break.time.by = 7
+)
+
+
+table(FINAL_Analysis_filt$P30)
+```
+
+```{r}
+#resp to 60d. 
+
+surv_obj <- Surv(
+  time  = FINAL_Analysis$PNEU60,
+  event = FINAL_Analysis$P60)
+
+fit <- survfit(
+  surv_obj ~ SD,
+  data = FINAL_Analysis)
+
+ggsurvplot(
+  fit,
+  data = FINAL_Analysis,
+  pval = TRUE,
+  conf.int = TRUE,
+  risk.table = FALSE,
+  xlab = "Time (days)",
+  ylab = "Survival Probability",
+  xlim = c(0, 60),
+  ylim = c(0.5, 1.0),
+  break.time.by = 7
+)
+
+
+table(FINAL_Analysis_filt$P60)
+
+
+
+#DAIRY VS BEEF IN THE THUNDERDOME
+
+surv_obj <- Surv(
+  time  = FINAL_Analysis$PNEU60,
+  event = FINAL_Analysis$P60)
+
+fit <- survfit(
+  surv_obj ~ DB,
+  data = FINAL_Analysis)
+
+ggsurvplot(
+  fit,
+  data = FINAL_Analysis,
+  pval = TRUE,
+  conf.int = TRUE,
+  risk.table = FALSE,
+  xlab = "Time (days)",
+  ylab = "Survival Probability",
+  xlim = c(0, 60),
+  ylim = c(0.5, 1.0),
+  break.time.by = 7
+)
+
+
+table(FINAL_Analysis_filt$P60)
+```
+
+```{r}
+
+#30d mortality 
+
+surv_obj <- Surv(
+  time  = FINAL_Analysis$DED30,
+  event = FINAL_Analysis$D30yn)
+
+fit <- survfit(
+  surv_obj ~ SD,
+  data = FINAL_Analysis)
+
+ggsurvplot(
+  fit,
+  data = FINAL_Analysis,
+  pval = TRUE,
+  conf.int = TRUE,
+  risk.table = FALSE,
+  xlab = "Time (days)",
+  ylab = "Survival Probability",
+  xlim = c(0, 28),
+  break.time.by = 7
+)
+
+
+table(FINAL_Analysis_filt$D30yn)
+
+
+#30d mortality DAIRY VS. BEEFIES
+
+surv_obj <- Surv(
+  time  = FINAL_Analysis$DED30,
+  event = FINAL_Analysis$D30yn)
+
+fit <- survfit(
+  surv_obj ~ DB,
+  data = FINAL_Analysis)
+
+ggsurvplot(
+  fit,
+  data = FINAL_Analysis,
+  pval = TRUE,
+  conf.int = TRUE,
+  risk.table = FALSE,
+  xlab = "Time (days)",
+  ylab = "Survival Probability",
+  xlim = c(0, 28),
+  break.time.by = 7
+)
+
+
+table(FINAL_Analysis_filt$D30yn)
+```
+
+```{r}
+
+#60d mortality 
+
+surv_obj <- Surv(
+  time  = FINAL_Analysis$DED60,
+  event = FINAL_Analysis$D60yn)
+
+fit <- survfit(
+  surv_obj ~ SD,
+  data = FINAL_Analysis)
+
+ggsurvplot(
+  fit,
+  data = FINAL_Analysis,
+  pval = TRUE,
+  conf.int = TRUE,
+  risk.table = FALSE,
+  xlab = "Time (days)",
+  ylab = "Survival Probability",
+  xlim = c(0, 28),
+  break.time.by = 7
+)
+
+
+table(FINAL_Analysis_filt$D60yn)
+
+#DAIRY VS BEEF 
+
+surv_obj <- Surv(
+  time  = FINAL_Analysis$DED60,
+  event = FINAL_Analysis$D60yn)
+
+fit <- survfit(
+  surv_obj ~ DB,
+  data = FINAL_Analysis)
+
+ggsurvplot(
+  fit,
+  data = FINAL_Analysis,
+  pval = TRUE,
+  conf.int = TRUE,
+  risk.table = FALSE,
+  xlab = "Time (days)",
+  ylab = "Survival Probability",
+  xlim = c(0, 28),
+  break.time.by = 7
+)
+
+
+table(FINAL_Analysis_filt$D60yn)
 ```
