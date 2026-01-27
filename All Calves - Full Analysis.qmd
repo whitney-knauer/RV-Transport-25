@@ -539,6 +539,9 @@ FINAL7_new <- FINAL7_new %>%
 
 FINAL_Analysis <- FINAL7_new %>% 
   select(ID, sex, Breed2, stp, BRTHW, SORCE, SD, DB, diaload, diaARR, PN1a, PN2a, DIA1, D30, P30, P60, D30yn, D60yn, diaex, DIA30, PNEU30, PNEU60, DED30, DED60, Remark_PNEU1, Remark_DIED1)
+
+FINAL_Analysis <- FINAL_Analysis %>%
+  mutate(SD_DB = paste(SD, DB, sep = "_"))
   
 
 #Scours
@@ -676,6 +679,8 @@ FINAL_Analysis %>%
 
 ### KM Curves for Morbidity and Mortality
 
+#### Scours 30d
+
 ```{r}
 
 
@@ -696,11 +701,13 @@ ggsurvplot(
   fit,
   data = FINAL_Analysis_filt,
   pval = TRUE,
+  pval.coord = c(5, 0.6),
   conf.int = TRUE,
   risk.table = FALSE,
   xlab = "Time (days)",
-  ylab = "Survival Probability",
+  ylab = "Scours Treatment Survival Probability",
   xlim = c(0, 28),
+  ylim = c(0.5, 1.0),
   break.time.by = 7
 )
 
@@ -731,8 +738,9 @@ ggsurvplot(
   conf.int = TRUE,
   risk.table = FALSE,
   xlab = "Time (days)",
-  ylab = "Survival Probability",
+  ylab = "Scours Treatment Survival Probability",
   xlim = c(0, 28),
+  ylim = c(0.5, 1.0),
   break.time.by = 7
 )
 
@@ -740,6 +748,8 @@ ggsurvplot(
 table(FINAL_Analysis_filt$D30)
 
 ```
+
+#### Resp 30d
 
 ```{r}
 
@@ -758,11 +768,13 @@ ggsurvplot(
   fit,
   data = FINAL_Analysis,
   pval = TRUE,
+  pval.coord = c(5, 0.8),
   conf.int = TRUE,
   risk.table = FALSE,
   xlab = "Time (days)",
-  ylab = "Survival Probability",
+  ylab = "Resp Treatment Survival Probability",
   xlim = c(0, 28),
+   ylim = c(0.75, 1.0),
   break.time.by = 7
 )
 
@@ -799,6 +811,8 @@ ggsurvplot(
 table(FINAL_Analysis_filt$P30)
 ```
 
+#### Resp 60d
+
 ```{r}
 #resp to 60d. 
 
@@ -814,6 +828,7 @@ ggsurvplot(
   fit,
   data = FINAL_Analysis,
   pval = TRUE,
+   pval.coord = c(5, 0.8),
   conf.int = TRUE,
   risk.table = FALSE,
   xlab = "Time (days)",
@@ -855,6 +870,8 @@ ggsurvplot(
 table(FINAL_Analysis_filt$P60)
 ```
 
+#### Death 30d
+
 ```{r}
 
 #30d mortality 
@@ -871,11 +888,13 @@ ggsurvplot(
   fit,
   data = FINAL_Analysis,
   pval = TRUE,
+  pval.coord = c(5, 0.95),
   conf.int = TRUE,
   risk.table = FALSE,
   xlab = "Time (days)",
   ylab = "Survival Probability",
   xlim = c(0, 28),
+   ylim = c(0.9, 1.0),
   break.time.by = 7
 )
 
@@ -909,6 +928,8 @@ ggsurvplot(
 table(FINAL_Analysis_filt$D30yn)
 ```
 
+#### Death 60d
+
 ```{r}
 
 #60d mortality 
@@ -925,11 +946,13 @@ ggsurvplot(
   fit,
   data = FINAL_Analysis,
   pval = TRUE,
+  pval.coord = c(5, 0.95),
   conf.int = TRUE,
   risk.table = FALSE,
   xlab = "Time (days)",
   ylab = "Survival Probability",
   xlim = c(0, 28),
+     ylim = c(0.9, 1.0),
   break.time.by = 7
 )
 
@@ -960,4 +983,149 @@ ggsurvplot(
 
 
 table(FINAL_Analysis_filt$D60yn)
+```
+
+### KM Curves SDDB
+
+#### Scours 30d
+
+```{r}
+
+FINAL_Analysis_filt <- FINAL_Analysis %>% 
+  filter(diaex != 1)
+
+surv_obj <- Surv(
+  time  = FINAL_Analysis_filt$DIA30,
+  event = FINAL_Analysis_filt$D30)
+
+fit <- survfit(
+  surv_obj ~ SD_DB,
+  data = FINAL_Analysis_filt)
+
+ggsurvplot(
+  fit,
+  data = FINAL_Analysis_filt,
+  pval = TRUE,
+  pval.coord = c(5, 0.6),
+  conf.int = TRUE,
+  risk.table = FALSE,
+  xlab = "Time (days)",
+  ylab = "Scours Treatment Survival Probability",
+  xlim = c(0, 28),
+  ylim = c(0.5, 1.0),
+  break.time.by = 7
+)
+
+```
+
+#### Resp 30d
+
+```{r}
+
+
+surv_obj <- Surv(
+  time  = FINAL_Analysis$PNEU30,
+  event = FINAL_Analysis$P30)
+
+fit <- survfit(
+  surv_obj ~ SD_DB,
+  data = FINAL_Analysis)
+
+ggsurvplot(
+  fit,
+  data = FINAL_Analysis,
+  pval = TRUE,
+  pval.coord = c(5, 0.8),
+  conf.int = TRUE,
+  risk.table = FALSE,
+  xlab = "Time (days)",
+  ylab = "Resp Treatment Survival Probability",
+  xlim = c(0, 28),
+   ylim = c(0.75, 1.0),
+  break.time.by = 7
+)
+
+```
+
+#### Resp 60d
+
+```{r}
+
+surv_obj <- Surv(
+  time  = FINAL_Analysis$PNEU60,
+  event = FINAL_Analysis$P60)
+
+fit <- survfit(
+  surv_obj ~ SD_DB,
+  data = FINAL_Analysis)
+
+ggsurvplot(
+  fit,
+  data = FINAL_Analysis,
+  pval = TRUE,
+   pval.coord = c(5, 0.8),
+  conf.int = TRUE,
+  risk.table = FALSE,
+  xlab = "Time (days)",
+  ylab = "Survival Probability",
+  xlim = c(0, 60),
+  ylim = c(0.5, 1.0),
+  break.time.by = 7
+)
+
+```
+
+#### Death 30d
+
+```{r}
+surv_obj <- Surv(
+  time  = FINAL_Analysis$DED30,
+  event = FINAL_Analysis$D30yn)
+
+fit <- survfit(
+  surv_obj ~ SD_DB,
+  data = FINAL_Analysis)
+
+ggsurvplot(
+  fit,
+  data = FINAL_Analysis,
+  pval = TRUE,
+  pval.coord = c(5, 0.95),
+  conf.int = TRUE,
+  risk.table = FALSE,
+  xlab = "Time (days)",
+  ylab = "Survival Probability",
+  xlim = c(0, 28),
+   ylim = c(0.9, 1.0),
+  break.time.by = 7
+)
+
+```
+
+#### Death 60d
+
+```{r}
+
+surv_obj <- Surv(
+  time  = FINAL_Analysis$DED60,
+  event = FINAL_Analysis$D60yn)
+
+fit <- survfit(
+  surv_obj ~ SD_DB,
+  data = FINAL_Analysis)
+
+ggsurvplot(
+  fit,
+  data = FINAL_Analysis,
+  pval = TRUE,
+  pval.coord = c(5, 0.95),
+  conf.int = TRUE,
+  risk.table = FALSE,
+  xlab = "Time (days)",
+  ylab = "Survival Probability",
+  xlim = c(0, 28),
+     ylim = c(0.9, 1.0),
+  break.time.by = 7
+)
+
 ```
