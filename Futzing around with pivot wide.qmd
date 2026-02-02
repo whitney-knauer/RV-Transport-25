@@ -73,7 +73,7 @@ new <- new %>%
 #filter for only the events I care about
 new<-
   new %>% 
-  filter(Event %in% c("PNEU", "BLOAT", "COMMENT", "SCOURS", "DIED"))
+  filter(Event %in% c("PNEU", "BLOAT", "NAVEL", "COMMENT", "SCOURS", "DIED"))
 
 #add a new column so events stay
 new <- new %>%
@@ -92,7 +92,7 @@ new_wide <- new %>%
 
 new1 <- 
   new %>% 
-  filter(Event %in% c("PNEU", "BLOAT", "COMMENT", "SCOURS", "DIED"))
+  filter(Event %in% c("PNEU", "BLOAT", "NAVEL", "COMMENT", "SCOURS", "DIED"))
 
 new1_num <- 
   new1 %>% 
@@ -134,7 +134,7 @@ dvc_all <- dvc_all %>%
 
 dvc_all2 <- 
   dvc_all %>% 
-  filter(Event %in% c("PNEU", "BLOAT", "COMMENT", "SCOURS", "DIED"))
+  filter(Event %in% c("PNEU", "BLOAT", "NAVEL", "COMMENT", "SCOURS", "DIED"))
 
 #this code limits to the first three occurances of any event
 
@@ -165,7 +165,7 @@ dvc_wide<-
 dvcnew_wide<-
   dvc_wide %>% 
   select(
-    ID, EID, Date_PNEU1, Remark_PNEU1, Date_PNEU2, Remark_PNEU2, Date_PNEU3, Remark_PNEU3, Date_SCOURS1, Remark_SCOURS1, Date_SCOURS2, Remark_SCOURS2, Date_BLOAT1, Remark_BLOAT1, Date_BLOAT2, Remark_BLOAT2, Date_DIED1, Remark_DIED1
+    ID, EID, Date_PNEU1, Remark_PNEU1, Date_PNEU2, Remark_PNEU2, Date_PNEU3, Remark_PNEU3, Date_SCOURS1, Remark_SCOURS1, Date_SCOURS2, Remark_SCOURS2, Date_BLOAT1, Remark_BLOAT1, Date_BLOAT2, Remark_BLOAT2, Date_NAVEL1, Remark_NAVEL1, Date_NAVEL2, Remark_NAVEL2, Date_NAVEL3, Remark_NAVEL3, Date_DIED1, Remark_DIED1
   )
 ```
 
@@ -199,7 +199,7 @@ TCC_all <- TCC_all %>%
 
 tcc_all <- 
   TCC_all %>% 
-  filter(Event %in% c("PNEU", "BLOAT", "COMMENT", "SCOURS", "DIED"))
+  filter(Event %in% c("PNEU", "BLOAT", "NAVEL", "COMMENT", "SCOURS", "DIED"))
 
 #this code limits to the first three occurances of any event
 
@@ -222,16 +222,14 @@ tcc_wide<-
   pivot_wider(
     id_cols = c(ID, EID), 
     names_from = Event_tag, 
-    values_from = c(Date, Remark)
-  )
+    values_from = c(Date, Remark))
 
 #now I want to re-order the data so it makes some sense
 
 tccnew_wide<-
   tcc_wide %>% 
   select(
-    ID, EID, Date_PNEU1, Remark_PNEU1, Date_PNEU2, Remark_PNEU2, Date_PNEU3, Remark_PNEU3, Date_SCOURS1, Remark_SCOURS1, Date_SCOURS2, Remark_SCOURS2, Date_BLOAT1, Remark_BLOAT1, Date_BLOAT2, Remark_BLOAT2, Date_DIED1, Remark_DIED1
-  )
+    ID, EID, Date_PNEU1, Remark_PNEU1, Date_PNEU2, Remark_PNEU2, Date_PNEU3, Remark_PNEU3, Date_SCOURS1, Remark_SCOURS1, Date_SCOURS2, Remark_SCOURS2, Date_BLOAT1, Remark_BLOAT1, Date_BLOAT2, Remark_BLOAT2, Date_NAVEL1, Remark_NAVEL1, Date_NAVEL2, Remark_NAVEL2, Date_NAVEL3, Remark_NAVEL3, Date_DIED1, Remark_DIED1)
 ```
 
 ### Bind together
@@ -321,8 +319,7 @@ dvc2_wide<-
 dvcnew2_wide<-
   dvc2_wide %>% 
   select(
-    ID, EID, Date_PNEU1, Remark_PNEU1, Date_PNEU2, Remark_PNEU2, Date_PNEU3, Remark_PNEU3, Date_SCOURS1, Remark_SCOURS1, Date_SCOURS2, Remark_SCOURS2, Date_BLOAT1, Remark_BLOAT1, Date_BLOAT2, Remark_BLOAT2, Date_DIED1, Remark_DIED1
-  )
+    ID, EID, Date_PNEU1, Remark_PNEU1, Date_PNEU2, Remark_PNEU2, Date_PNEU3, Remark_PNEU3, Date_SCOURS1, Remark_SCOURS1, Date_SCOURS2, Remark_SCOURS2, Date_BLOAT1, Remark_BLOAT1, Date_BLOAT2, Remark_BLOAT2, Date_NAVEL1, Remark_NAVEL1, Date_NAVEL2, Remark_NAVEL2, Date_DIED1, Remark_DIED1)
 ```
 
 Compare DVC1 and DVC2

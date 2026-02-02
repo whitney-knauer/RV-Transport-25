@@ -78,6 +78,14 @@ key<-key |>
          ToTCC = mdy(ToTCC), 
          ArrTCC = mdy(ArrTCC), 
          DatOFF = mdy(DatOFF))
+
+all<- read_csv("data/FINAL.csv")
+
+key <- key %>% 
+  left_join(all, by = "CalfID")
+
+key<- key %>% 
+  select(Cow, CalfID, Bdat, FOO, BRTHW, stp, Breed2, diaload, diaARR, TRT, OneLoad, DatMOC, IceCube, DatON, TimeONp, ToTCC, TimetoTCCp, Section, ArrTCC, TimeArrTCCp, TimeTrip, DatOFF, TimeOFFp, PN1a, DIA1, D30, P30, P60)
 ```
 
 ### Merge Two Data Sets
@@ -147,9 +155,16 @@ merged_data <- use |>
     hoursfrom = case_when(
       tfship == 0 ~ 0,                                      
       tfship < 0 ~ as.integer((abs(tfship) - 1) %/% 4 + 1) * -1,  
-      tfship > 0 ~ as.integer((tfship - 1) %/% 4 + 1)           
-    )
-  )
+      tfship > 0 ~ as.integer((tfship - 1) %/% 4 + 1)))
+
+merged_data <- merged_data |> 
+  mutate(timecat = cut(hoursfrom, 
+                breaks = c(-Inf, -1, 25, Inf), 
+                labels = c("pre", "during", "post")))
+
+
+
+
 
 
 
@@ -163,14 +178,19 @@ hour <- merged_data |>
     MI = sum(`Motion Index`),
     FOO = first(FOO),              
     TRT = first(TRT),
+    Breed = first(Breed2), 
+    bwt = first (BRTHW), 
+    diaload = first(diaload),
+    sec = first (Section),
     OneLoad = first(OneLoad),
     .groups = "drop")
 
 hour$timecat <- cut(hour$hour, 
-                breaks = c(-Inf, -1, 28, Inf), 
+                breaks = c(-Inf, -1, 25, Inf), 
                 labels = c("pre", "during", "post"))
     
-  
+
+#calves were scanned in at hour ~25 so this is the end point of the "during". As there is not a way to scan calves in the trailer....
 
 fullcut<-
 merged_data %>% 
@@ -370,7 +390,9 @@ emmeans(lm_mi, ~TRT|timecat)
 #### Plot to sus out 3.5sf
 
 ```{r}
-hour %>% 
+
+
+hourcut %>% 
   filter(hour >= 28 & hour <= 50) %>% 
   filter(timecat == "post") %>% 
   filter(TRT == "DF3.5") %>% 
@@ -380,7 +402,7 @@ hour %>%
          theme_minimal()
 
 
-hour %>% 
+hourcut %>% 
   filter(hour >= 28 & hour <= 50) %>% 
   filter(timecat == "post") %>% 
   filter(TRT == "DF3.0") %>% 
@@ -390,7 +412,7 @@ hour %>%
          theme_minimal()
 
 
-hour %>% 
+hourcut %>% 
   filter(hour >= 28 & hour <= 50) %>% 
   filter(timecat == "post") %>% 
   filter(TRT == "DF4.5") %>% 
@@ -405,19 +427,80 @@ hour %>%
 
 #How do I sus this out further? Sum for each calf? 
 
-hour %>% 
+df3.5 <- hourcut %>% 
    filter(hour >= 29 & hour <= 50) %>%
   filter(timecat == "post") %>% 
   filter(TRT == "DF3.5") %>% 
   group_by(Cow) %>% 
   summarize(
     lay = sum(Lying), 
-    lay1 = sum(Lying)/22
-  )
-  
+    lay1 = sum(Lying)/22)
+
+df3.5
+
+dfall <- hourcut %>% 
+   filter(hour >= 31 & hour <= 40) %>%
+  filter(timecat == "post") %>% 
+  group_by(Cow) %>% 
+  summarize(
+    lay = sum(Lying), 
+    lay1 = sum(Lying)/10)
+
+dfall
+
+
+write.csv(x = df3.5, file = "data/3.5calves.csv" )
+write.csv(x = dfall, file = "data/postcalves.csv" )
 #Then, if the summarized is 60 we can assume that the data is crap? 
+#look at this further, how many calves look like they have reliable data? 
+
+target_calf<- c(233,199,245,211,236,235,198,260,237,262,190,192,244,241,228,219,197,204,225,252,196,191,207,229,227,189,193,214,217,222,226,230,231,234,239,246,249,250)
+
+hour_clean <- hourcut %>%
+  filter(!Cow %in% target_calf & hour>=29)
+
+hour_clean %>% 
+  filter(hour >= 28 & hour <= 50) %>% 
+  filter(timecat == "post") %>% 
+  filter(TRT == "DF3.5") %>% 
+  ggplot(aes(x=hour, y=Lying, color = factor(Cow), group = Cow))+
+         geom_line (aes(fill = Cow), size = 1, alpha = 0.1)+
+         geom_point()+ 
+         theme_minimal()
 
 
+hour_clean %>% 
+  filter(hour >= 28 & hour <= 50) %>% 
+  filter(timecat == "post") %>% 
+  filter(TRT == "DF3.0") %>% 
+  ggplot(aes(x=hour, y=Lying, color = factor(Cow), group = Cow))+
+         geom_line (aes(fill = Cow), size = 1, alpha = 0.1)+
+         geom_point()+ 
+         theme_minimal()
+
+
+hour_clean %>% 
+  filter(hour >= 28 & hour <= 50) %>% 
+  filter(timecat == "post") %>% 
+  filter(TRT == "DF4.5") %>% 
+  ggplot(aes(x=hour, y=Lying, color = factor(Cow), group = Cow))+
+         geom_line (aes(fill = Cow), size = 1, alpha = 0.1)+
+         geom_point()+ 
+         theme_minimal()
+
+
+```
+
+#### Change in Merged Data to pull out all weird calves (n=69 calves)
+
+```{r}
+#| warning: false
+#| echo: false
+
+#target_calf<- c(169,171,177,182,184,186,188,212,203,254,233,132,202,232,247,195,220,258,218,243,238,210,355,144,167,168,170,173,174,175,176,179,180,181,183,185,187,189,191,192,193,198,199,204,207,213,214,217,219,222,225,226,227,228,229,230,231,234,237,239,245,246,249,250,251,252,260,262,283)
+
+#merged_data_f <- merged_data %>%
+#  filter (!(Cow %in% target_calf))
 ```
 
 ## Hour
@@ -432,8 +515,8 @@ hour %>%
 
 
 laying <- merged_data |> 
-  filter(hoursfrom >= -16 & hoursfrom <= 50) |> 
-  group_by(Cow, hoursfrom) |>  
+  filter(hoursfrom >= -16 & hoursfrom <= 50) |>
+  group_by(Cow, hoursfrom, timecat) |>  
   summarize(
     `Lying Time` = sum(`Lying Time`, na.rm = TRUE)) |> 
   group_by(hoursfrom) |>  
@@ -472,6 +555,31 @@ laying2 <- merged_data |>
 
 
 laying2 |> 
+ggplot(aes(x = hoursfrom, y = lyingm, color=TRT)) +
+  theme_classic() +
+  geom_point() +  
+  geom_line() +   
+  labs(
+    title = "Lying Time in the 48hrs around long haul transport",
+    x = "Hours from Trip Start",
+    y = "Lying Time (min)")+
+    scale_y_continuous(limits = c(0, 60), breaks = seq(0, 60, by = 5))+
+    scale_x_continuous(limits = c(-16, 50), breaks = seq(-16, 50, by = 8))
+
+laying2_f <- merged_data_f |> 
+  filter(hoursfrom >= -16 & hoursfrom <= 50) |> 
+  group_by(Cow, hoursfrom, TRT) |>  
+  summarize(
+    `Lying Time` = sum(`Lying Time`, na.rm = TRUE)) |> 
+  group_by(hoursfrom, TRT) |>  
+  summarize(
+    `Lying Time` = mean(`Lying Time`, na.rm = TRUE)) |> 
+  mutate(
+    lyingm = `Lying Time` / 60) |> 
+  ungroup()
+
+
+laying2_f |> 
 ggplot(aes(x = hoursfrom, y = lyingm, color=TRT)) +
   theme_classic() +
   geom_point() +  
@@ -605,7 +713,7 @@ ggplot(aes(x = hoursfrom, y = standm)) +
 
 
 standing2 <- merged_data |> 
-  filter(hoursfrom >= -16 & hoursfrom <= 50) |> 
+  filter(hoursfrom >= -12 & hoursfrom <= 40) |> 
   group_by(Cow, hoursfrom, TRT) |>  
   summarize(
     `Standing Time` = sum(`Standing Time`, na.rm = TRUE)) |> 
@@ -630,6 +738,31 @@ ggplot(aes(x = hoursfrom, y = standm, color=TRT)) +
     scale_x_continuous(limits = c(-16, 50), breaks = seq(-16, 50, by = 6))
 
 
+
+standing2_f <- merged_data_f |> 
+  filter(hoursfrom >= -12 & hoursfrom <= 40) |> 
+  group_by(Cow, hoursfrom, TRT) |>  
+  summarize(
+    `Standing Time` = sum(`Standing Time`, na.rm = TRUE)) |> 
+  group_by(hoursfrom, TRT) |>  
+  summarize(
+    `Standing Time` = mean(`Standing Time`, na.rm = TRUE)) |> 
+  mutate(
+    standm = `Standing Time` / 60) |> 
+  ungroup()
+
+
+standing2_f |> 
+ggplot(aes(x = hoursfrom, y = standm, color=TRT)) +
+  theme_classic() +
+  geom_point() +  
+  geom_line() +   
+  labs(
+    title = "Standing Time in the 48hrs around transportation",
+    x = "Hours from Transport",
+    y = "Standing Time (min)") +
+    scale_y_continuous(limits = c(0, 60), breaks = seq(0, 60, by = 5))+
+    scale_x_continuous(limits = c(-12, 40), breaks = seq(-12, 40, by = 6))
 
 
 ```
@@ -689,6 +822,28 @@ ggplot(aes(x = hoursfrom, y = steps, color=TRT)) +
     scale_x_continuous(limits = c(-16, 50), breaks = seq(-16, 50, by = 8))
 
 
+stepgrp_f <- merged_data_f |> 
+  filter(hoursfrom >= -16 & hoursfrom <= 50) |> 
+  group_by(Cow, hoursfrom, TRT) |>  
+  summarize(
+    `Steps` = sum(`Steps`, na.rm = TRUE)) |> 
+  group_by(hoursfrom, TRT) |>  
+  summarize(
+    steps = mean(`Steps`, na.rm = TRUE)) |> 
+  ungroup()
+
+
+stepgrp_f |> 
+ggplot(aes(x = hoursfrom, y = steps, color=TRT)) +
+  theme_classic() +
+  geom_point() +  
+  geom_line() +   
+  labs(
+    title = "Steps in the 48hrs around transportation",
+    x = "Hours from Transport",
+    y = "Steps(n)") +
+    scale_y_continuous(limits = c(0, 200), breaks = seq(0, 200, by = 50))+
+    scale_x_continuous(limits = c(-16, 50), breaks = seq(-16, 50, by = 8))
 
 ```
 
@@ -735,6 +890,31 @@ stepgrp2 <- merged_data |>
 
 
 stepgrp2 |> 
+ggplot(aes(x = hoursfrom, y = lb, color=TRT)) +
+  theme_classic() +
+  geom_point() +  
+  geom_line() +   
+  labs(
+    title = "Transitions in the 48hrs around transportation",
+    x = "Hours from Transport",
+    y = "Transitions(n)") +
+    scale_y_continuous(limits = c(0, 8), breaks = seq(0, 8, by = 2))+
+    scale_x_continuous(limits = c(-16, 50), breaks = seq(-16, 50, by = 8))
+
+
+
+stepgrp2_f <- merged_data_f |> 
+  filter(hoursfrom >= -16 & hoursfrom <= 50) |> 
+  group_by(Cow, hoursfrom, TRT) |>  
+  summarize(
+    `Transitions` = sum(`Transitions`, na.rm = TRUE)) |> 
+  group_by(hoursfrom, TRT) |>  
+  summarize(
+    lb = mean(`Transitions`, na.rm = TRUE)) |> 
+  ungroup()
+
+
+stepgrp2_f |> 
 ggplot(aes(x = hoursfrom, y = lb, color=TRT)) +
   theme_classic() +
   geom_point() +  
@@ -800,6 +980,34 @@ ggplot(aes(x = hoursfrom, y = mi, color=TRT)) +
     y = "MI") +
     scale_y_continuous(limits = c(0, 1000), breaks = seq(0, 1000, by = 250))+
     scale_x_continuous(limits = c(-16, 50), breaks = seq(-16, 50, by = 10))
+
+
+migrp2_f <- merged_data_f |> 
+  filter(hoursfrom >= -16 & hoursfrom <= 50) |> 
+  group_by(Cow, hoursfrom, TRT) |>  
+  summarize(
+    `Motion Index` = sum(`Motion Index`, na.rm = TRUE)) |> 
+  group_by(hoursfrom, TRT) |>  
+  summarize(
+    mi = mean(`Motion Index`, na.rm = TRUE)) |> 
+  ungroup()
+
+
+migrp2_f |> 
+ggplot(aes(x = hoursfrom, y = mi, color=TRT)) +
+  theme_classic() +
+  geom_point() +  
+  geom_line() +   
+  labs(
+    title = "Motion Index the 48hrs around transportation",
+    x = "Hours from Transport",
+    y = "MI") +
+    scale_y_continuous(limits = c(0, 1000), breaks = seq(0, 1000, by = 250))+
+    scale_x_continuous(limits = c(-16, 50), breaks = seq(-16, 50, by = 10))
+
+
+
+
 
 
 #data checks, when to parse the data
@@ -1117,7 +1325,7 @@ ggplot(aes(x = hoursfrom, y = lb, color=TRT)) +
 
 migrp <- merged_data |> 
      filter(OneLoad == 1)|>
-  filter(hoursfrom >= -16 & hoursfrom <= 50) |> 
+  filter(hoursfrom >= -24 & hoursfrom <= 50) |> 
   group_by(Cow, hoursfrom) |>  
   summarize(
     `Motion Index` = sum(`Motion Index`, na.rm = TRUE)) |> 
@@ -1143,7 +1351,7 @@ ggplot(aes(x = hoursfrom, y = mi)) +
 
 migrp2 <- merged_data |> 
      filter(OneLoad == 1)|>
-  filter(hoursfrom >= -16 & hoursfrom <= 50) |> 
+  filter(hoursfrom >= -24 & hoursfrom <= 50) |> 
   group_by(Cow, hoursfrom, TRT) |>  
   summarize(
     `Motion Index` = sum(`Motion Index`, na.rm = TRUE)) |> 
@@ -1159,9 +1367,513 @@ ggplot(aes(x = hoursfrom, y = mi, color=TRT)) +
   geom_point() +  
   geom_line() +   
   labs(
-    title = "Transitions in the 48hrs around transportation",
+    title = "MI in the 48hrs around transportation",
     x = "Hours from Transport",
-    y = "Transitions(n)") +
+    y = "Motion Index(n)") +
     scale_y_continuous(limits = c(0, 1000), breaks = seq(0, 1000, by = 250))+
-    scale_x_continuous(limits = c(-16, 50), breaks = seq(-16, 50, by = 8))
+    scale_x_continuous(limits = c(-24, 50), breaks = seq(-24, 50, by = 8))
+```
+
+## Models - One Load
+
+#### New Data Set
+
+This analysis data set includes data from calves 12 hours before (-12) to 12 hours after (26h + 12h = 38h) travel. Can tweak as needed, but I am not confident about the quality of the data post arrival as it looks like the 3.5DF were removed about hour 30 (4h after arrival) . We can do 24h as well which would be 28 + 24 = 52h. Actually, let's do that. Chose -12 bc it's evident that one group (SD 3.5) only had their stuff on 16h prior.
+
+```{r}
+
+analysis_data_full <- merged_data |> 
+  filter(OneLoad == 1)|>
+  filter(hoursfrom >= -12 & hoursfrom <= 38) %>% 
+  group_by(Cow, hoursfrom) |>
+  summarize(
+    lyingm = as.numeric(sum(`Lying Time`/60, na.rm = TRUE)), 
+    standingm = as.numeric(sum(`Standing Time`/60, na.rm = TRUE)), 
+    steps = sum(`Steps`, na.rm = TRUE), 
+    mi = sum(`Motion Index`, na.rm = TRUE), 
+    transitions = sum(`Transitions`, na.rm = TRUE), 
+    across(everything(), \(x) first(x)), 
+    .groups = "drop")
+
+#this helps remove data that is questionable without taking ALL the data. Removes calves who are lying with steps (unlikely) and who are standing with no steps (also unlikely) and all the calves who had their sensor removed at arrival which is all 3.5 calves except for 259, 248, 215). 
+analysis_data_full_f <- analysis_data_full %>% 
+  filter(!(lyingm == 60 & steps > 0),
+         !(standingm == 60 & steps <= 25), 
+         !(TRT == "DF3.5" & hoursfrom >= 30 & 
+      !(Cow %in% c(259, 248, 215))))
+
+write.csv(x=analysis_data_full_f, file = "data/filteredfull.csv" )
+#data set goes from 11872 to 9836, so a loss of 2036 observations
+
+
+dfall <- analysis_data_full_f %>% 
+   filter(hoursfrom >= 35 & hoursfrom <= 40) %>%
+  filter(TRT == "DF3.5") %>% 
+  filter(timecat == "post") %>% 
+  group_by(Cow) %>% 
+  summarize(
+    lay = sum(lyingm), 
+    lay1 = sum(lyingm)/6)
+
+dfall
+
+write.csv(x=dfall, file = "data/offenders.csv" )
+
+
+```
+
+#### Laying
+
+```{r}
+
+analysis_data_full_f$hoursfrom_fact <- 
+  factor(analysis_data_full_f$hoursfrom, 
+         levels = sort(unique(analysis_data_full_f$hoursfrom)))
+
+
+analysis_data_full_f$hours_num <- 
+  as.numeric(as.character(analysis_data_full_f$hoursfrom))
+
+#levels(analysis_data_full_f$hoursfrom_fact)
+
+
+mod_base <- lme(
+  fixed = lyingm ~ hoursfrom_fact * TRT,
+  random = ~ 1 | Cow,
+  data = analysis_data_full_f)
+
+mod_ar1 <- lme(
+  fixed = lyingm ~ hoursfrom_fact * TRT,
+  random = ~ 1 | Cow,
+  correlation = corAR1(form = ~ hours_num | Cow),
+  data = analysis_data_full_f)
+
+mod_rs <- lme(
+  fixed = lyingm ~ hoursfrom_fact * TRT,
+  random = ~ hours_num | Cow,
+  data = analysis_data_full_f)
+
+
+plot (mod_base)
+plot(mod_ar1)
+plot(mod_rs)
+
+anova(mod_base, mod_ar1, mod_rs)
+
+
+
+
+#AR1 is best based on model fit. 
+
+mod_ar1 <- lme(
+  fixed = lyingm ~ hoursfrom_fact * TRT + diaload ,
+  random = ~ 1 | Cow,
+  correlation = corAR1(form = ~ hours_num | Cow),
+  data = analysis_data_full_f)
+
+summary(mod_ar1)
+car::Anova(mod_ar1, type=3)
+emmeans(mod_ar1, ~ hoursfrom_fact|TRT)
+emm<-emmeans(mod_ar1, ~ hoursfrom_fact|TRT)
+
+emm_df <- as.data.frame(emm)
+unique(emm_df$TRT)
+
+
+custom_colors <- c("DF3.0" = "red4", "DF3.5" = "goldenrod2", "DF4.5" = "wheat4")
+intercept_0 <- which(levels(emm_df$hoursfrom_fact) == "0")
+intercept_26<- which(levels(emm_df$hoursfrom_fact) == "26")
+
+ggplot(emm_df, aes(x = hoursfrom_fact, y = emmean, color = TRT, group = TRT)) +
+   geom_vline(xintercept = c(intercept_0, intercept_26), linetype = "dashed", color = "gray11")+
+  geom_line() +
+  geom_point() +
+  scale_color_manual(values=custom_colors)+
+  geom_errorbar(aes(ymin = lower.CL, ymax = upper.CL), width = 0.3) +
+  labs(
+    x = "Hour from Transport (0)",
+    y = "Estimated Marginal Means of Lying Time") +
+  theme_classic() +
+  scale_y_continuous(limits = c(0, 61), breaks = seq(0, 61, by = 10))+
+  scale_x_discrete(breaks = seq(-16, 40, by = 4)) +
+      theme (legend.position = "top", 
+         legend.direction = "horizontal", 
+              axis.text = element_text(color = "black", size=10), 
+               legend.text = element_text(color = "black", size=10))+
+                theme(text=element_text(size=10, family = "Times New Roman"))
+
+
+
+#Analysis by cattime? 
+
+
+lm_lay <-lmer(lyingm ~TRT*timecat + diaload + BRTHW + (1|Cow), data=analysis_data_full_f)
+summary(lm_lay)
+emmeans(lm_lay, ~TRT|timecat)
+anova(lm_lay, type = 3)
+plot(lm_lay)
+
+
+emm_lay <- emmeans(lm_lay, ~ TRT | timecat)
+contrast_results <- pairs(emm_lay, reverse = FALSE)
+summary(contrast_results, adjust = "tukey")
+
+
+
+```
+
+#### Standing
+
+```{r}
+
+analysis_data_full_f$hoursfrom_fact <- 
+  factor(analysis_data_full_f$hoursfrom, 
+         levels = sort(unique(analysis_data_full_f$hoursfrom)))
+
+
+analysis_data_full_f$hours_num <- 
+  as.numeric(as.character(analysis_data_full_f$hoursfrom))
+
+
+mod_base <- lme(
+  fixed = standingm ~ hoursfrom_fact * TRT,
+  random = ~ 1 | Cow,
+  data = analysis_data_full_f)
+
+mod_ar1 <- lme(
+  fixed = standingm ~ hoursfrom_fact * TRT,
+  random = ~ 1 | Cow,
+  correlation = corAR1(form = ~ hours_num | Cow),
+  data = analysis_data_full_f)
+
+mod_rs <- lme(
+  fixed = standingm ~ hoursfrom_fact * TRT,
+  random = ~ hours_num | Cow,
+  data = analysis_data_full_f)
+
+
+plot (mod_base)
+plot(mod_ar1)
+plot(mod_rs)
+
+anova(mod_base, mod_ar1, mod_rs)
+
+
+
+
+#AR1 is best based on model fit. 
+
+mod_ar1 <- lme(
+  fixed = standingm ~ hoursfrom_fact * TRT + diaload ,
+  random = ~ 1 | Cow,
+  correlation = corAR1(form = ~ hours_num | Cow),
+  data = analysis_data_full_f)
+
+summary(mod_ar1)
+car::Anova(mod_ar1, type=3)
+emmeans(mod_ar1, ~ hoursfrom_fact|TRT)
+emm<-emmeans(mod_ar1, ~ hoursfrom_fact|TRT)
+
+emm_df <- as.data.frame(emm)
+unique(emm_df$TRT)
+
+custom_colors <- c("DF3.0" = "red4", "DF3.5" = "goldenrod2", "DF4.5" = "wheat4")
+intercept_0 <- which(levels(emm_df$hoursfrom_fact) == "0")
+intercept_25 <- which(levels(emm_df$hoursfrom_fact) == "25")
+
+ggplot(emm_df, aes(x = hoursfrom_fact, y = emmean, color = TRT, group = TRT)) +
+  geom_vline(xintercept = c(intercept_0, intercept_25), linetype = "dashed", color = "gray11")+
+  geom_line() +
+  geom_point() +
+  scale_color_manual(values=custom_colors)+
+  geom_errorbar(aes(ymin = lower.CL, ymax = upper.CL), width = 0.3) +
+  labs(
+    x = "Hour from Transport (0)",
+    y = "Estimated Marginal Means of Standing Time") +
+  theme_classic() +
+  scale_y_continuous(limits = c(0, 60), breaks = seq(0, 60, by = 10))+
+  scale_x_discrete(breaks = seq(-16, 40, by = 4)) +
+      theme (legend.position = "top", 
+         legend.direction = "horizontal", 
+              axis.text = element_text(color = "black", size=10), 
+               legend.text = element_text(color = "black", size=10))+
+                theme(text=element_text(size=10, family = "Times New Roman"))
+
+
+
+#Analysis by cattime? 
+
+
+lm_stand <-lmer(standingm ~TRT*timecat + diaload + BRTHW + (1|Cow), data=analysis_data_full_f)
+summary(lm_stand)
+emmeans(lm_stand, ~TRT|timecat)
+plot(lm_stand)
+
+
+emm_lay <- emmeans(lm_stand, ~ TRT | timecat)
+contrast_results <- pairs(emm_lay, reverse = FALSE)
+summary(contrast_results, adjust = "tukey")
+```
+
+#### Steps
+
+```{r}
+
+analysis_data_full_f$hoursfrom_fact <- 
+  factor(analysis_data_full_f$hoursfrom, 
+         levels = sort(unique(analysis_data_full_f$hoursfrom)))
+
+
+analysis_data_full_f$hours_num <- 
+  as.numeric(as.character(analysis_data_full_f$hoursfrom))
+
+mod_base <- lme(
+  fixed = steps ~ hoursfrom_fact * TRT,
+  random = ~ 1 | Cow,
+  data = analysis_data_full_f)
+
+mod_ar1 <- lme(
+  fixed = steps ~ hoursfrom_fact * TRT,
+  random = ~ 1 | Cow,
+  correlation = corAR1(form = ~ hours_num | Cow),
+  data = analysis_data_full_f)
+
+#mod_rs <- lme(
+# fixed = steps ~ hoursfrom_fact * TRT,
+#  random = ~ hours_num | Cow,
+#  data = analysis_data_full)
+
+
+plot (mod_base)
+plot(mod_ar1)
+#plot(mod_rs)
+
+anova(mod_base, mod_ar1)
+
+
+
+
+#AR1 is best based on model fit. 
+
+mod_ar1 <- lme(
+  fixed = steps ~ hoursfrom_fact * TRT + diaload ,
+  random = ~ 1 | Cow,
+  correlation = corAR1(form = ~ hours_num | Cow),
+  data = analysis_data_full_f)
+
+summary(mod_ar1)
+car::Anova(mod_ar1, type=3)
+emmeans(mod_ar1, ~ hoursfrom_fact|TRT)
+emm<-emmeans(mod_ar1, ~ hoursfrom_fact|TRT)
+
+emm_df <- as.data.frame(emm)
+unique(emm_df$TRT)
+
+custom_colors <- c("DF3.0" = "red4", "DF3.5" = "goldenrod2", "DF4.5" = "wheat4")
+ggplot(emm_df, aes(x = hoursfrom_fact, y = emmean, color = TRT, group = TRT)) +
+  geom_line() +
+  geom_point() +
+  scale_color_manual(values=custom_colors)+
+  geom_errorbar(aes(ymin = lower.CL, ymax = upper.CL), width = 0.3) +
+  labs(
+    x = "Hour from Transport (0)",
+    y = "Estimated Marginal Means of Steps") +
+  theme_classic() +
+  scale_y_continuous(limits = c(0, 200), breaks = seq(0, 200, by = 50))+
+  scale_x_discrete(breaks = seq(-16, 40, by = 4)) +
+      theme (legend.position = "none", 
+         legend.direction = "horizontal", 
+              axis.text = element_text(color = "black", size=10), 
+               legend.text = element_text(color = "black", size=10))+
+                theme(text=element_text(size=10, family = "Times New Roman"))
+
+
+
+#Analysis by cattime? 
+
+
+lm_lay <-lmer(steps ~TRT*timecat + diaload + BRTHW + (1|Cow), data=analysis_data_full_f)
+summary(lm_lay)
+emmeans(lm_lay, ~TRT|timecat)
+plot(lm_lay)
+
+
+emm_lay <- emmeans(lm_lay, ~ TRT | timecat)
+contrast_results <- pairs(emm_lay, reverse = FALSE)
+summary(contrast_results, adjust = "tukey")
+```
+
+#### Motion Index
+
+```{r}
+analysis_data_full_f$hoursfrom_fact <- 
+  factor(analysis_data_full_f$hoursfrom, 
+         levels = sort(unique(analysis_data_full_f$hoursfrom)))
+
+
+analysis_data_full_f$hours_num <- 
+  as.numeric(as.character(analysis_data_full_f$hoursfrom))
+
+mod_base <- lme(
+  fixed = mi ~ hoursfrom_fact * TRT,
+  random = ~ 1 | Cow,
+  data = analysis_data_full_f)
+
+mod_ar1 <- lme(
+  fixed = mi ~ hoursfrom_fact * TRT,
+  random = ~ 1 | Cow,
+  correlation = corAR1(form = ~ hours_num | Cow),
+  data = analysis_data_full_f)
+
+#mod_rs <- lme(
+# fixed = mi ~ hoursfrom_fact * TRT,
+#  random = ~ hours_num | Cow,
+#  data = analysis_data_full)
+
+
+plot (mod_base)
+plot(mod_ar1)
+#plot(mod_rs)
+
+anova(mod_base, mod_ar1)
+
+
+
+
+#AR1 is best based on model fit. 
+
+mod_ar1 <- lme(
+  fixed = mi ~ hoursfrom_fact * TRT + diaload ,
+  random = ~ 1 | Cow,
+  correlation = corAR1(form = ~ hours_num | Cow),
+  data = analysis_data_full_f)
+
+summary(mod_ar1)
+car::Anova(mod_ar1, type=3)
+emmeans(mod_ar1, ~ hoursfrom_fact|TRT)
+emm<-emmeans(mod_ar1, ~ hoursfrom_fact|TRT)
+
+emm_df <- as.data.frame(emm)
+unique(emm_df$TRT)
+
+custom_colors <- c("DF3.0" = "red4", "DF3.5" = "goldenrod2", "DF4.5" = "wheat4")
+ggplot(emm_df, aes(x = hoursfrom_fact, y = emmean, color = TRT, group = TRT)) +
+  geom_line() +
+  geom_point() +
+  scale_color_manual(values=custom_colors)+
+  geom_errorbar(aes(ymin = lower.CL, ymax = upper.CL), width = 0.3) +
+  labs(
+    x = "Hour from Transport (0)",
+    y = "Estimated Marginal Means MI") +
+  theme_classic() +
+  scale_y_continuous(limits = c(0, 1000), breaks = seq(0, 1000, by = 100))+
+  scale_x_discrete(breaks = seq(-16, 40, by = 4)) +
+      theme (legend.position = "none", 
+         legend.direction = "horizontal", 
+              axis.text = element_text(color = "black", size=10), 
+               legend.text = element_text(color = "black", size=10))+
+                theme(text=element_text(size=10, family = "Times New Roman"))
+
+
+
+#Analysis by cattime? 
+
+
+lm_lay <-lmer(mi ~TRT*timecat + diaload + BRTHW + (1|Cow), data=analysis_data_full_f)
+summary(lm_lay)
+emmeans(lm_lay, ~TRT|timecat)
+plot(lm_lay)
+
+
+emm_lay <- emmeans(lm_lay, ~ TRT | timecat)
+contrast_results <- pairs(emm_lay, reverse = FALSE)
+summary(contrast_results, adjust = "tukey")
+```
+
+#### Transitions
+
+```{r}
+analysis_data_full_f$hoursfrom_fact <- 
+  factor(analysis_data_full_f$hoursfrom, 
+         levels = sort(unique(analysis_data_full_f$hoursfrom)))
+
+
+analysis_data_full_f$hours_num <- 
+  as.numeric(as.character(analysis_data_full_f$hoursfrom))
+
+
+mod_base <- lme(
+  fixed = transitions ~ hoursfrom_fact * TRT,
+  random = ~ 1 | Cow,
+  data = analysis_data_full_f)
+
+mod_ar1 <- lme(
+  fixed = transitions ~ hoursfrom_fact * TRT,
+  random = ~ 1 | Cow,
+  correlation = corAR1(form = ~ hours_num | Cow),
+  data = analysis_data_full_f)
+
+#mod_rs <- lme(
+# fixed = steps ~ hoursfrom_fact * TRT,
+#  random = ~ hours_num | Cow,
+#  data = analysis_data_full)
+
+
+plot (mod_base)
+plot(mod_ar1)
+#plot(mod_rs)
+
+anova(mod_base, mod_ar1)
+
+
+
+
+#AR1 is best based on model fit. 
+
+mod_ar1 <- lme(
+  fixed = transitions ~ hoursfrom_fact * TRT + diaload ,
+  random = ~ 1 | Cow,
+  correlation = corAR1(form = ~ hours_num | Cow),
+  data = analysis_data_full_f)
+
+summary(mod_ar1)
+car::Anova(mod_ar1, type=3)
+emmeans(mod_ar1, ~ hoursfrom_fact|TRT)
+emm<-emmeans(mod_ar1, ~ hoursfrom_fact|TRT)
+
+emm_df <- as.data.frame(emm)
+unique(emm_df$TRT)
+
+custom_colors <- c("DF3.0" = "red4", "DF3.5" = "goldenrod2", "DF4.5" = "wheat4")
+ggplot(emm_df, aes(x = hoursfrom_fact, y = emmean, color = TRT, group = TRT)) +
+  geom_line() +
+  geom_point() +
+  scale_color_manual(values=custom_colors)+
+  geom_errorbar(aes(ymin = lower.CL, ymax = upper.CL), width = 0.3) +
+  labs(
+    x = "Hour from Transport (0)",
+    y = "Estimated Marginal Means of Transitions") +
+  theme_classic() +
+  scale_y_continuous(limits = c(0, 10), breaks = seq(0, 10, by = 5))+
+  scale_x_discrete(breaks = seq(-16, 40, by = 4)) +
+      theme (legend.position = "none", 
+         legend.direction = "horizontal", 
+              axis.text = element_text(color = "black", size=10), 
+               legend.text = element_text(color = "black", size=10))+
+                theme(text=element_text(size=10, family = "Times New Roman"))
+
+
+
+#Analysis by cattime? 
+
+
+lm_lay <-lmer(transitions ~TRT*timecat + diaload + BRTHW + (1|Cow), data=analysis_data_full_f)
+summary(lm_lay)
+emmeans(lm_lay, ~TRT|timecat)
+plot(lm_lay)
+
+
+emm_lay <- emmeans(lm_lay, ~ TRT | timecat)
+contrast_results <- pairs(emm_lay, reverse = FALSE)
+summary(contrast_results, adjust = "tukey")
 ```
