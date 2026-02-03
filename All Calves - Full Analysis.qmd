@@ -605,76 +605,6 @@ FINAL7_new %>%
 
 ```
 
-#### Simple Table 1 Stuff - ttests 
-
-```{r}
-#| warning: false
-#| echo: false
-
-#Birth Weight
-
-lm_bw <-lm(BRTHW ~ as.factor(SD), data=FINAL_Analysis)
-summary(lm_bw)
-anova(lm_bw )
-emmeans(lm_bw, ~SD)
-
-lm_bw <-lm(BRTHW ~ as.factor(SD)*as.factor(DB), data=FINAL_Analysis)
-summary(lm_bw)
-anova(lm_bw )
-emmeans(lm_bw, ~SD|DB)
-
-#STP
-stp <- FINAL_Analysis %>% 
-  filter(stp != 0)
-
-lm_stp <-lm(stp ~ as.factor(SD), data=stp)
-summary(lm_stp)
-anova(lm_stp )
-emmeans(lm_stp, ~SD)
-
-lm_stp <-lm(stp ~ as.factor(SD)*as.factor(DB), data=stp)
-summary(lm_stp)
-anova(lm_stp )
-emmeans(lm_stp, ~SD|DB)
-
-#LoadAge
-
-lm_load <-lm(diaload ~ as.factor(SD), data=FINAL_Analysis)
-summary(lm_load)
-anova(lm_load )
-emmeans(lm_load, ~SD)
-
-lm_load <-lm(diaload~ as.factor(SD)*as.factor(DB), data=FINAL_Analysis)
-summary(lm_load)
-anova(lm_load )
-emmeans(lm_load, ~SD|DB)
-
-
-#Arrival Age
-
-lm_load <-lm(diaARR ~ as.factor(SD), data=FINAL_Analysis)
-summary(lm_load)
-anova(lm_load )
-emmeans(lm_load, ~SD)
-
-lm_load <-lm(diaARR~ as.factor(SD)*as.factor(DB), data=FINAL_Analysis)
-summary(lm_load)
-anova(lm_load )
-emmeans(lm_load, ~SD|DB)
-
-#Travel Time
-
-lm_load <-lm(transitT ~ as.factor(SD), data=FINAL7_new)
-summary(lm_load)
-anova(lm_load )
-emmeans(lm_load, ~SD)
-
-lm_load <-lm(transitT ~ as.factor(SD)*as.factor(DB), data=FINAL7_new)
-summary(lm_load)
-anova(lm_load )
-emmeans(lm_load, ~SD|DB)
-```
-
 #### Health Treatment to 60d
 
 ```{r}
@@ -947,6 +877,76 @@ CrossTable (FINAL_Analysis$navelex, FINAL_Analysis$D30yn)
 CrossTable (FINAL_Analysis$navelex, FINAL_Analysis$D60yn)
 
 
+```
+
+#### Simple Demographic Univariable Analysis
+
+```{r}
+#| warning: false
+#| echo: false
+
+#Birth Weight
+
+lm_bw <-lm(BRTHW ~ as.factor(SD), data=FINAL_Analysis)
+summary(lm_bw)
+anova(lm_bw )
+emmeans(lm_bw, ~SD)
+
+lm_bw <-lm(BRTHW ~ as.factor(SD)*as.factor(DB), data=FINAL_Analysis)
+summary(lm_bw)
+anova(lm_bw )
+emmeans(lm_bw, ~SD|DB)
+
+#STP
+stp <- FINAL_Analysis %>% 
+  filter(stp != 0)
+
+lm_stp <-lm(stp ~ as.factor(SD), data=stp)
+summary(lm_stp)
+anova(lm_stp )
+emmeans(lm_stp, ~SD)
+
+lm_stp <-lm(stp ~ as.factor(SD)*as.factor(DB), data=stp)
+summary(lm_stp)
+anova(lm_stp )
+emmeans(lm_stp, ~SD|DB)
+
+#LoadAge
+
+lm_load <-lm(diaload ~ as.factor(SD), data=FINAL_Analysis)
+summary(lm_load)
+anova(lm_load )
+emmeans(lm_load, ~SD)
+
+lm_load <-lm(diaload~ as.factor(SD)*as.factor(DB), data=FINAL_Analysis)
+summary(lm_load)
+anova(lm_load )
+emmeans(lm_load, ~SD|DB)
+
+
+#Arrival Age
+
+lm_load <-lm(diaARR ~ as.factor(SD), data=FINAL_Analysis)
+summary(lm_load)
+anova(lm_load )
+emmeans(lm_load, ~SD)
+
+lm_load <-lm(diaARR~ as.factor(SD)*as.factor(DB), data=FINAL_Analysis)
+summary(lm_load)
+anova(lm_load )
+emmeans(lm_load, ~SD|DB)
+
+#Travel Time
+
+lm_load <-lm(transitT ~ as.factor(SD), data=FINAL7_new)
+summary(lm_load)
+anova(lm_load )
+emmeans(lm_load, ~SD)
+
+lm_load <-lm(transitT ~ as.factor(SD)*as.factor(DB), data=FINAL7_new)
+summary(lm_load)
+anova(lm_load )
+emmeans(lm_load, ~SD|DB)
 ```
 
 ### KM Curves for Morbidity and Mortality
@@ -2150,7 +2150,7 @@ sd_contrasts <- pairs(sd_means, reverse = FALSE)
 summary(sd_contrasts, type = "response", infer = c(TRUE, TRUE))
 ```
 
-#### Resp 30d - Dairy 
+#### Resp 30d - Dairy
 
 Only 2 observations here so this is a bit of a dumb model
 
