@@ -43,6 +43,7 @@ library(stringi)
 library(survival)
 library(survminer)
 library(patchwork)
+library(coxme)
 ```
 
 ### Data Steps
@@ -435,6 +436,17 @@ FINAL7_new |>
 
 
 FINAL7_new |> 
+  ggplot(mapping=aes(x=transitT))+
+  theme_classic()+
+  geom_histogram(binwidth=0.2, 
+                 fill="orange", 
+                 color="black", 
+                 alpha=0.7)+
+  labs(title = "Histogram of transit time (h)")
+
+
+
+FINAL7_new |> 
   group_by(SD, DB) |> 
   summarize (
     bwt = mean(BRTHW), 
@@ -681,7 +693,7 @@ FINAL7_new <- FINAL7_new %>%
 #now clean up the data set!
 
 FINAL_Analysis <- FINAL7_new %>% 
-  select(ID, sex, Breed2, stp, BRTHW, SORCE, SD, DB, diaload, diaARR, LOAD, transitT, PN1a, PN2a, DIA1, D30, P30, P60, D30yn, D60yn, diaex, navelex, DIA30, PNEU30, PNEU60, Nav30, N30, DED30, DED60, Remark_PNEU1, Remark_DIED1)
+  select(ID, sex, Breed2, stp, BRTHW, SORCE, SD, DB, diaload, diaARR, LOAD, week, transitT, PN1a, PN2a, DIA1, D30, P30, P60, D30yn, D60yn, diaex, navelex, DIA30, PNEU30, PNEU60, Nav30, N30, DED30, DED60, Remark_PNEU1, Remark_DIED1)
 
 FINAL_Analysis <- FINAL_Analysis %>%
   mutate(SD_DB = paste(SD, DB, sep = "_"))
@@ -969,9 +981,16 @@ fit <- survfit(
   surv_obj ~ SD,
   data = FINAL_Analysis_filt)
 
+
+custom_colors <- c(
+  "SD=3"   = "red4", 
+  "SD=3.5" = "goldenrod2", 
+  "SD=4.5" = "wheat4")
+
 ggsurvplot(
   fit,
   data = FINAL_Analysis_filt,
+  palette = custom_colors,
   pval = TRUE,
   pval.coord = c(5, 0.6),
   conf.int = TRUE,
@@ -980,9 +999,8 @@ ggsurvplot(
   ylab = "Scours Treatment Survival Probability",
   xlim = c(0, 28),
   ylim = c(0.5, 1.0),
-  break.time.by = 7
-)
-
+  legend = "top",
+  break.time.by = 7)
 
 table(FINAL_Analysis_filt$D30)
 
@@ -1046,6 +1064,34 @@ ggsurvplot(
 
   
 #yikes, a lot of variation by load. Will have to deal with that!
+
+#What about by WEEK? 
+FINAL_Analysis_filt <- FINAL_Analysis %>% 
+  filter(diaex != 1)
+
+surv_obj <- Surv(
+  time  = FINAL_Analysis_filt$DIA30,
+  event = FINAL_Analysis_filt$D30)
+
+fit <- survfit(
+  surv_obj ~ week,
+  data = FINAL_Analysis_filt)
+
+ggsurvplot(
+  fit,
+  data = FINAL_Analysis_filt,
+  pval = TRUE,
+  conf.int = FALSE,
+  risk.table = FALSE,
+  xlab = "Time (days)",
+  ylab = "Scours Treatment Survival Probability",
+  xlim = c(0, 28),
+  ylim = c(0.5, 1.0),
+  break.time.by = 7)
+
+
+
+
 ```
 
 #### Navel 30d
@@ -1132,6 +1178,34 @@ ggsurvplot(
 #~5% variation by load. 
 
 
+#WEEK
+
+surv_obj <- Surv(
+  time  = FINAL_Analysis_filt_n$Nav30,
+  event = FINAL_Analysis_filt_n$N30)
+
+fit <- survfit(
+  surv_obj ~ week,
+  data = FINAL_Analysis_filt_n)
+
+ggsurvplot(
+  fit,
+  data = FINAL_Analysis_filt_n,
+  pval = TRUE,
+  pval.coord = c(5, 0.9),
+  conf.int = FALSE,
+  risk.table = FALSE,
+  xlab = "Time (days)",
+  ylab = "Scours Treatment Survival Probability",
+  xlim = c(0, 28),
+  ylim = c(0.9, 1.0),
+  break.time.by = 7)
+
+#~5% by week, week G was the worst. 
+
+
+
+
 ```
 
 #### Resp 30d
@@ -1214,6 +1288,28 @@ ggsurvplot(
   break.time.by = 7)
 
 #25% difference by load, likely also due to dairy vs. beef. 
+
+
+#Week
+
+surv_obj <- Surv(
+  time  = FINAL_Analysis$PNEU30,
+  event = FINAL_Analysis$P30)
+
+fit <- survfit(
+  surv_obj ~ week,
+  data = FINAL_Analysis)
+
+ggsurvplot(
+  fit,
+  data = FINAL_Analysis,
+  pval = TRUE,
+  conf.int = FALSE,
+  risk.table = FALSE,
+  xlab = "Time (days)",
+  ylab = "Survival Probability",
+  xlim = c(0, 28),
+  break.time.by = 7)
 ```
 
 #### Resp 60d
@@ -1297,6 +1393,32 @@ ggsurvplot(
   legend = "none")
 
 #huge variation, likely driven by dairy vs. beef. 
+
+
+#week
+surv_obj <- Surv(
+  time  = FINAL_Analysis$PNEU60,
+  event = FINAL_Analysis$P60)
+
+fit <- survfit(
+  surv_obj ~ week,
+  data = FINAL_Analysis)
+
+ggsurvplot(
+  fit,
+  data = FINAL_Analysis,
+  pval = TRUE,
+   pval.coord = c(5, 0.8),
+  conf.int = FALSE,
+  risk.table = FALSE,
+  xlab = "Time (days)",
+  ylab = "Survival Probability",
+  xlim = c(0, 60),
+  ylim = c(0.5, 1.0),
+  break.time.by = 7)
+
+#Later calves did much worse (August -oct calves oof)
+
 ```
 
 #### Death 30d
@@ -1379,6 +1501,29 @@ ggsurvplot(
 #maybe a 5ish percent difference? 
 
 
+#By week
+
+surv_obj <- Surv(
+  time  = FINAL_Analysis$DED30,
+  event = FINAL_Analysis$D30yn)
+
+fit <- survfit(
+  surv_obj ~ week,
+  data = FINAL_Analysis)
+
+ggsurvplot(
+  fit,
+  data = FINAL_Analysis,
+  pval = TRUE,
+  conf.int = FALSE,
+  risk.table = FALSE,
+  xlab = "Time (days)",
+  ylab = "Survival Probability",
+  xlim = c(0, 28),
+   ylim = c(0.9, 1.0),
+  break.time.by = 7)
+
+
 ```
 
 #### Death 60d
@@ -1459,6 +1604,30 @@ ggsurvplot(
 
 #doesn't seem like a lot of differece? 
 
+
+#WEEK
+surv_obj <- Surv(
+  time  = FINAL_Analysis$DED60,
+  event = FINAL_Analysis$D60yn)
+
+fit <- survfit(
+  surv_obj ~ week,
+  data = FINAL_Analysis)
+
+ggsurvplot(
+  fit,
+  data = FINAL_Analysis,
+  pval = TRUE,
+  conf.int = FALSE,
+  risk.table = FALSE,
+  xlab = "Time (days)",
+  ylab = "Survival Probability",
+  xlim = c(0, 60),
+  ylim = c(0.9, 1.0),
+  break.time.by = 7)
+
+#3% difference
+
 ```
 
 ### KM Curves SDDB
@@ -1506,15 +1675,21 @@ fit <- survfit(
   surv_obj ~ SD,
   data = FINAL_Analysis_filt_d)
 
+custom_colors <- c(
+  "SD=3"   = "red4", 
+  "SD=3.5" = "goldenrod2", 
+  "SD=4.5" = "wheat4")
+
 ggsurvplot(
   fit,
   data = FINAL_Analysis_filt_d,
+  palette = custom_colors,
   pval = TRUE,
   pval.coord = c(5, 0.6),
   conf.int = TRUE,
   risk.table = FALSE,
   xlab = "Time (days)",
-  ylab = "Scours Treatment Survival Probability",
+  ylab = "Scours Treatment Survival Probability - DAIRY",
   xlim = c(0, 28),
   ylim = c(0.5, 1.0),
   break.time.by = 7)
@@ -1537,12 +1712,13 @@ fit <- survfit(
 ggsurvplot(
   fit,
   data = FINAL_Analysis_filt_b,
+    palette = custom_colors,
   pval = TRUE,
   pval.coord = c(5, 0.6),
   conf.int = TRUE,
   risk.table = FALSE,
   xlab = "Time (days)",
-  ylab = "Scours Treatment Survival Probability",
+  ylab = "Scours Treatment Survival Probability-BEEF",
   xlim = c(0, 28),
   ylim = c(0.5, 1.0),
   break.time.by = 7)
@@ -1613,6 +1789,11 @@ ggsurvplot(
 FINAL_Analysis_filt_n <- FINAL_Analysis %>% 
   filter(navelex != 1)
 
+custom_colors <- c(
+  "SD=3"   = "red4", 
+  "SD=3.5" = "goldenrod2", 
+  "SD=4.5" = "wheat4")
+
 surv_obj <- Surv(
   time  = FINAL_Analysis_filt_n$Nav30,
   event = FINAL_Analysis_filt_n$N30)
@@ -1638,7 +1819,7 @@ ggsurvplot(
 #Dairy
 
 FINAL_Analysis_filt_nd <- FINAL_Analysis_filt_n %>% 
-  filter(diaex != 1) %>% 
+  filter(navelex != 1) %>% 
   filter(Breed2 == "D")
 
 surv_obj <- Surv(
@@ -1652,12 +1833,13 @@ fit <- survfit(
 ggsurvplot(
   fit,
   data = FINAL_Analysis_filt_nd,
+  palette = custom_colors,
   pval = TRUE,
   pval.coord = c(5, 0.95),
   conf.int = TRUE,
   risk.table = FALSE,
   xlab = "Time (days)",
-  ylab = "Scours Treatment Survival Probability",
+  ylab = "Navel Treatment Survival Probability-DAIRY",
   xlim = c(0, 28),
   ylim = c(0.9, 1.0),
   break.time.by = 7)
@@ -1666,7 +1848,7 @@ ggsurvplot(
 #BEEF
 
 FINAL_Analysis_filt_nb <- FINAL_Analysis_filt_n %>% 
-  filter(diaex != 1) %>% 
+  filter(navelex != 1) %>% 
   filter(Breed2 == "B")
 
 surv_obj <- Surv(
@@ -1680,12 +1862,13 @@ fit <- survfit(
 ggsurvplot(
   fit,
   data = FINAL_Analysis_filt_nb,
+   palette = custom_colors,
   pval = TRUE,
   pval.coord = c(5, 0.95),
   conf.int = TRUE,
   risk.table = FALSE,
   xlab = "Time (days)",
-  ylab = "Navel Treatment Survival Probability",
+  ylab = "Navel Treatment Survival Probability-BEEF",
   xlim = c(0, 28),
   ylim = c(0.9, 1.0),
   break.time.by = 7)
@@ -1779,6 +1962,12 @@ ggsurvplot(
 
 ```{r}
 
+custom_colors <- c(
+  "SD=3"   = "red4", 
+  "SD=3.5" = "goldenrod2", 
+  "SD=4.5" = "wheat4")
+
+
 surv_obj <- Surv(
   time  = FINAL_Analysis$PNEU60,
   event = FINAL_Analysis$P60)
@@ -1816,12 +2005,13 @@ fit <- survfit(
 ggsurvplot(
   fit,
   data = FINAL_Analysis_d,
+  palette = custom_colors,
   pval = TRUE,
    pval.coord = c(5, 0.8),
   conf.int = TRUE,
   risk.table = FALSE,
   xlab = "Time (days)",
-  ylab = "Survival Probability",
+  ylab = "Respiratory Treatment Survival Probability - DAIRY",
   xlim = c(0, 60),
   ylim = c(0.5, 1.0),
   break.time.by = 7)
@@ -1841,12 +2031,13 @@ fit <- survfit(
 ggsurvplot(
   fit,
   data = FINAL_Analysis_b,
+  palette = custom_colors,
   pval = TRUE,
    pval.coord = c(5, 0.8),
   conf.int = TRUE,
   risk.table = FALSE,
   xlab = "Time (days)",
-  ylab = "Survival Probability",
+  ylab = "Respiratory Treatment Survival Probability - BEEF",
   xlim = c(0, 60),
   ylim = c(0.5, 1.0),
   break.time.by = 7)
@@ -1856,6 +2047,13 @@ ggsurvplot(
 #### Death 30d
 
 ```{r}
+
+custom_colors <- c(
+  "SD=3"   = "red4", 
+  "SD=3.5" = "goldenrod2", 
+  "SD=4.5" = "wheat4")
+
+
 surv_obj <- Surv(
   time  = FINAL_Analysis$DED30,
   event = FINAL_Analysis$D30yn)
@@ -1893,12 +2091,13 @@ fit <- survfit(
 ggsurvplot(
   fit,
   data = FINAL_Analysis_d,
+  palette = custom_colors,
   pval = TRUE,
   pval.coord = c(5, 0.95),
   conf.int = TRUE,
   risk.table = FALSE,
   xlab = "Time (days)",
-  ylab = "Survival Probability",
+  ylab = "Survival Probability - DAIRY",
   xlim = c(0, 28),
    ylim = c(0.9, 1.0),
   break.time.by = 7)
@@ -1919,12 +2118,13 @@ fit <- survfit(
 ggsurvplot(
   fit,
   data = FINAL_Analysis_b,
+  palette = custom_colors,
   pval = TRUE,
   pval.coord = c(5, 0.95),
   conf.int = TRUE,
   risk.table = FALSE,
   xlab = "Time (days)",
-  ylab = "Survival Probability",
+  ylab = "Survival Probability - BEEF",
   xlim = c(0, 28),
    ylim = c(0.9, 1.0),
   break.time.by = 7)
@@ -1936,6 +2136,11 @@ ggsurvplot(
 #### Death 60d
 
 ```{r}
+
+custom_colors <- c(
+  "SD=3"   = "red4", 
+  "SD=3.5" = "goldenrod2", 
+  "SD=4.5" = "wheat4")
 
 surv_obj <- Surv(
   time  = FINAL_Analysis$DED60,
@@ -1974,12 +2179,13 @@ fit <- survfit(
 ggsurvplot(
   fit,
   data = FINAL_Analysis_d,
+  palette = custom_colors,
   pval = TRUE,
   pval.coord = c(5, 0.95),
   conf.int = TRUE,
   risk.table = FALSE,
   xlab = "Time (days)",
-  ylab = "Survival Probability",
+  ylab = "Survival Probability - DAIRY",
   xlim = c(0, 60),
      ylim = c(0.9, 1.0),
   break.time.by = 7)
@@ -2001,12 +2207,13 @@ fit <- survfit(
 ggsurvplot(
   fit,
   data = FINAL_Analysis_b,
+  palette = custom_colors,
   pval = TRUE,
   pval.coord = c(5, 0.95),
   conf.int = TRUE,
   risk.table = FALSE,
   xlab = "Time (days)",
-  ylab = "Survival Probability",
+  ylab = "Survival Probability - BEEF",
   xlim = c(0, 60),
      ylim = c(0.9, 1.0),
   break.time.by = 7)
@@ -2015,7 +2222,7 @@ ggsurvplot(
 
 ### Cox Proportional Hazards Models
 
-#### Scours 30d - ALL
+#### Scours 30d - FINAL
 
 ```{r}
 
@@ -2025,10 +2232,10 @@ FINAL_Analysis_filt <- FINAL_Analysis %>%
 
 FINAL_Analysis_filt$SD <- relevel(as.factor(FINAL_Analysis_filt$SD), ref = "3")
 
-dia30_model <- coxph(Surv(DIA30, D30) ~ SD*DB + sex + transitT + diaARR + BRTHW, 
+dia30_model <- coxme(Surv(DIA30, D30) ~ SD*DB  + transitT + BRTHW + (1|week/LOAD), 
                    data = FINAL_Analysis_filt)
 summary(dia30_model)
-Anova(dia30_model, type = "III", test.statistic = "LR")
+Anova(dia30_model, type = "III")
 
 test_ph <- cox.zph(dia30_model)
 print(test_ph)
@@ -2047,6 +2254,8 @@ summary(sd_contrasts, type = "response", infer = c(TRUE, TRUE))
 
 #### Scours 30d - Dairy
 
+##### Cox proportional with fraility
+
 ```{r}
 
 
@@ -2054,11 +2263,13 @@ FINAL_Analysis_filt_d <- FINAL_Analysis %>%
   filter(diaex != 1) %>% 
   filter(Breed2 == "D")
 
+
 FINAL_Analysis_filt_d$SD <- relevel(as.factor(FINAL_Analysis_filt_d$SD), ref = "3")
 
-dia30_model <- coxph(Surv(DIA30, D30) ~ as.factor(SD) + diaARR + BRTHW, 
-                   data = FINAL_Analysis_filt_d)
+dia30_model <- coxph(Surv(DIA30, D30) ~ as.factor(SD) + diaARR + transitT + BRTHW +navelex, data = FINAL_Analysis_filt_d)
+
 summary(dia30_model)
+Anova(dia30_model, type = "III")
 
 test_ph <- cox.zph(dia30_model)
 print(test_ph)
@@ -2072,7 +2283,37 @@ sd_contrasts <- pairs(sd_means, reverse = FALSE)
 summary(sd_contrasts, type = "response", infer = c(TRUE, TRUE))
 ```
 
+##### Cox proportional with random effects
+
+```{r}
+
+FINAL_Analysis_filt_d <- FINAL_Analysis %>% 
+  filter(diaex != 1) %>% 
+  filter(Breed2 == "D")
+
+scour_30 <- coxme(Surv(DIA30, D30) ~ as.factor(SD) +  diaARR + transitT + BRTHW + navelex + (1|week/LOAD), FINAL_Analysis_filt_d)
+
+summary(scour_30, type=3)
+Anova(scour_30, type = "III")
+
+
+
+test_ph <- cox.zph(scour_30)
+print(test_ph)
+plot(test_ph)
+
+
+sd_means <- emmeans(scour_30, "SD")
+sd_contrasts <- pairs(sd_means, reverse = FALSE) 
+summary(sd_contrasts, type = "response", infer = c(TRUE, TRUE))
+
+adj_probs <- emmeans(scour_30, "SD", type = "response")
+print(adj_probs)
+```
+
 #### Scours 30d - Beef
+
+##### Cox proportional with no RE
 
 ```{r}
 
@@ -2082,7 +2323,7 @@ FINAL_Analysis_filt_b <- FINAL_Analysis %>%
 
 FINAL_Analysis_filt_b$SD <- relevel(as.factor(FINAL_Analysis_filt_b$SD), ref = "3")
 
-dia30_model <- coxph(Surv(DIA30, D30) ~ as.factor(SD) + diaARR + BRTHW, 
+dia30_model <- coxph(Surv(DIA30, D30) ~ as.factor(SD) + diaARR + BRTHW + LOAD + navelex, 
                    data = FINAL_Analysis_filt_b)
 summary(dia30_model)
 
@@ -2097,7 +2338,86 @@ sd_contrasts <- pairs(sd_means, reverse = FALSE)
 summary(sd_contrasts, type = "response", infer = c(TRUE, TRUE))
 ```
 
-#### Navel 30d - ALL
+##### Cox proportional with random effects
+
+```{r}
+
+FINAL_Analysis_filt_b <- FINAL_Analysis %>% 
+  filter(diaex != 1) %>% 
+  filter(Breed2 == "B")
+
+scour_30w <- coxme(Surv(DIA30, D30) ~ as.factor(SD) +  diaARR + transitT + BRTHW + navelex + (1|week), FINAL_Analysis_filt_b)
+
+summary(scour_30w, type=3)
+Anova(scour_30w, type = "III")
+
+
+
+test_ph <- cox.zph(scour_30w)
+print(test_ph)
+plot(test_ph)
+
+
+sd_means <- emmeans(scour_30w, "SD")
+sd_contrasts <- pairs(sd_means, reverse = FALSE) 
+summary(sd_contrasts, type = "response", infer = c(TRUE, TRUE))
+
+
+
+
+
+FINAL_Analysis_filt_b <- FINAL_Analysis %>% 
+  filter(diaex != 1) %>% 
+  filter(Breed2 == "B")
+
+scour_30l <- coxme(Surv(DIA30, D30) ~ as.factor(SD) +  diaARR + transitT + BRTHW + navelex + (1|LOAD), FINAL_Analysis_filt_b)
+
+summary(scour_30l, type=3)
+Anova(scour_30l, type = "III")
+
+
+
+test_ph <- cox.zph(scour_30l)
+print(test_ph)
+plot(test_ph)
+
+
+sd_means <- emmeans(scour_30l, "SD")
+sd_contrasts <- pairs(sd_means, reverse = FALSE) 
+summary(sd_contrasts, type = "response", infer = c(TRUE, TRUE))
+
+
+
+
+FINAL_Analysis_filt_b <- FINAL_Analysis %>% 
+  filter(diaex != 1) %>% 
+  filter(Breed2 == "B")
+
+scour_30lw <- coxme(Surv(DIA30, D30) ~ as.factor(SD) +  diaARR + transitT + BRTHW + navelex + (1|week/LOAD), FINAL_Analysis_filt_b)
+
+summary(scour_30lw, type=3)
+Anova(scour_30lw, type = "III")
+
+
+
+test_ph <- cox.zph(scour_30lw)
+print(test_ph)
+plot(test_ph)
+
+
+sd_means <- emmeans(scour_30lw, "SD")
+sd_contrasts <- pairs(sd_means, reverse = FALSE) 
+summary(sd_contrasts, type = "response", infer = c(TRUE, TRUE))
+
+
+
+
+print(scour_30l)
+print(scour_30w)
+print (scour_30lw)
+```
+
+#### Navel 30d - FINAL
 
 ```{r}
 
@@ -2109,10 +2429,10 @@ FINAL_Analysis_filt_n <- FINAL_Analysis %>%
 
 FINAL_Analysis_filt_n$SD <- relevel(as.factor(FINAL_Analysis_filt_n$SD), ref = "3")
 
-nav30_model <- coxph(Surv(Nav30, N30) ~ SD*DB + sex + transitT + diaARR + BRTHW, 
+nav30_model <- coxme(Surv(Nav30, N30) ~ SD*DB  + transitT + diaARR + BRTHW + (1|week/LOAD), 
                    data = FINAL_Analysis_filt_n)
 summary(nav30_model)
-Anova(nav30_model, type = "III", test.statistic = "LR")
+Anova(nav30_model, type = "III")
 
 test_ph <- cox.zph(nav30_model)
 print(test_ph)
@@ -2125,6 +2445,60 @@ interaction_means <- emmeans(nav30_model, ~SD|DB)
 sd_contrasts <- pairs(interaction_means, reverse = FALSE) 
 summary(sd_contrasts, type = "response", infer = c(TRUE, TRUE))
 
+```
+
+#### Navel 30 - Dairy
+
+```{r}
+
+FINAL_Analysis_filt_nd <- FINAL_Analysis %>% 
+  filter(navelex != 1) %>% 
+  filter(Breed2 == "D")
+
+FINAL_Analysis_filt_nd$SD <- relevel(as.factor(FINAL_Analysis_filt_nd$SD), ref = "3")
+
+navel_30d <- coxme(Surv(Nav30, N30) ~ as.factor(SD) +  diaARR + transitT + BRTHW + diaex + (1|LOAD), FINAL_Analysis_filt_nd)
+
+summary(navel_30d , type=3)
+Anova(navel_30d , type = "III")
+
+
+
+test_ph <- cox.zph(navel_30d )
+print(test_ph)
+plot(test_ph)
+
+
+sd_means <- emmeans(navel_30d, "SD")
+sd_contrasts <- pairs(sd_means, reverse = FALSE) 
+summary(sd_contrasts, type = "response", infer = c(TRUE, TRUE))
+
+```
+
+#### Navel 30 - Beef
+
+```{r}
+FINAL_Analysis_filt_nb <- FINAL_Analysis %>% 
+  filter(navelex != 1) %>% 
+  filter(Breed2 == "B")
+
+FINAL_Analysis_filt_nb$SD <- relevel(as.factor(FINAL_Analysis_filt_nb$SD), ref = "3")
+
+navel_30b <- coxme(Surv(Nav30, N30) ~ as.factor(SD) +  diaARR + transitT + BRTHW + diaex + (1|LOAD), FINAL_Analysis_filt_nb)
+
+summary(navel_30b , type=3)
+Anova(navel_30b , type = "III")
+
+
+
+test_ph <- cox.zph(navel_30b )
+print(test_ph)
+plot(test_ph)
+
+
+sd_means <- emmeans(navel_30b, "SD")
+sd_contrasts <- pairs(sd_means, reverse = FALSE) 
+summary(sd_contrasts, type = "response", infer = c(TRUE, TRUE))
 ```
 
 #### Resp 30d - ALL
@@ -2195,16 +2569,16 @@ sd_contrasts <- pairs(sd_means, reverse = FALSE)
 summary(sd_contrasts, type = "response", infer = c(TRUE, TRUE))
 ```
 
-#### Resp 60d - ALL
+#### Resp 60d - FINAL
 
 ```{r}
 
 FINAL_Analysis$SD <- relevel(as.factor(FINAL_Analysis$SD), ref = "3")
 
-resp60_model <- coxph(Surv(PNEU60, P60) ~ SD*DB + sex + transitT + diaARR + BRTHW, 
-                   data = FINAL_Analysis)
+resp60_model <- coxme(Surv(PNEU60, P60) ~ SD*DB + transitT + diaARR + BRTHW + (1|week/LOAD), data = FINAL_Analysis)
+
 summary(resp60_model)
-Anova(resp60_model, type = "III", test.statistic = "LR")
+Anova(resp60_model, type = "III")
 
 test_ph <- cox.zph(resp60_model)
 print(test_ph)
@@ -2219,12 +2593,17 @@ summary(sd_contrasts, type = "response", infer = c(TRUE, TRUE))
 
 #### Resp 60d - Dairy
 
+##### Regular Cox model
+
 ```{r}
+
+FINAL_Analysis_d <- FINAL_Analysis %>% 
+  filter(Breed2 == "D")
 
 FINAL_Analysis_d$SD <- relevel(as.factor(FINAL_Analysis_d$SD), ref = "3")
 
 
-resp60_model <- coxph(Surv(PNEU60, P60) ~ as.factor(SD) + diaARR + BRTHW, 
+resp60_model <- coxph(Surv(PNEU60, P60) ~ as.factor(SD) + diaARR + BRTHW + transitT + diaex + navelex, 
                    data = FINAL_Analysis_d)
 summary(resp60_model)
 
@@ -2239,37 +2618,95 @@ sd_contrasts <- pairs(sd_means, reverse = FALSE)
 summary(sd_contrasts, type = "response", infer = c(TRUE, TRUE))
 ```
 
-#### Resp 60d - Beef
+##### Cox model with random effects
 
 ```{r}
 
+FINAL_Analysis_d <- FINAL_Analysis %>% 
+  filter(Breed2 == "D")
+
+FINAL_Analysis_d$SD <- relevel(as.factor(FINAL_Analysis_d$SD), ref = "3")
+
+resp_60d <- coxme(Surv(PNEU60, P60) ~ as.factor(SD) +  diaARR + transitT + BRTHW + navelex + diaex + (1|LOAD), FINAL_Analysis_d)
+
+summary(resp_60d, type=3)
+Anova(resp_60d, type = "III")
+
+
+
+test_ph <- cox.zph(resp_60d)
+print(test_ph)
+plot(test_ph)
+
+
+sd_means <- emmeans(resp_60d, "SD")
+sd_contrasts <- pairs(sd_means, reverse = FALSE) 
+summary(sd_contrasts, type = "response", infer = c(TRUE, TRUE))
+
+```
+
+#### Resp 60d - Beef
+
+##### Regular Cox Model
+
+```{r}
+
+FINAL_Analysis_b <- FINAL_Analysis %>% 
+  filter(Breed2 == "B")
+
 FINAL_Analysis_b$SD <- relevel(as.factor(FINAL_Analysis_b$SD), ref = "3")
 
-resp60_model <- coxph(Surv(PNEU60, P60) ~ SD + diaARR + BRTHW, 
-                   data = FINAL_Analysis_b)
-summary(resp60_model)
 
-test_ph <- cox.zph(resp60_model)
+resp60b_model <- coxph(Surv(PNEU60, P60) ~ as.factor(SD) + diaARR + BRTHW + transitT + diaex + navelex, 
+                   data = FINAL_Analysis_b)
+summary(resp60b_model)
+
+test_ph <- cox.zph(resp60b_model)
 print(test_ph)
 
 
 plot(test_ph)
 
-sd_means <- emmeans(resp60_model, "SD")
+sd_means <- emmeans(resp60b_model, "SD")
 sd_contrasts <- pairs(sd_means, reverse = FALSE) 
 summary(sd_contrasts, type = "response", infer = c(TRUE, TRUE))
 ```
 
-#### Death 30d - ALL
+##### Cox model with random effects
+
+```{r}
+FINAL_Analysis_b <- FINAL_Analysis %>% 
+  filter(Breed2 == "B")
+
+FINAL_Analysis_b$SD <- relevel(as.factor(FINAL_Analysis_b$SD), ref = "3")
+
+resp_60b <- coxme(Surv(PNEU60, P60) ~ as.factor(SD) +  diaARR + transitT + BRTHW + navelex + diaex + (1|LOAD), FINAL_Analysis_b)
+
+summary(resp_60b, type=3)
+Anova(resp_60b, type = "III")
+
+
+
+test_ph <- cox.zph(resp_60b)
+print(test_ph)
+plot(test_ph)
+
+
+sd_means <- emmeans(resp_60b, "SD")
+sd_contrasts <- pairs(sd_means, reverse = FALSE) 
+summary(sd_contrasts, type = "response", infer = c(TRUE, TRUE))
+```
+
+#### Death 30d - FINAL
 
 ```{r}
 
 FINAL_Analysis$SD <- relevel(as.factor(FINAL_Analysis$SD), ref = "3")
 
-dead30_model <- coxph(Surv(DED60, D30yn) ~ SD*DB + sex + diaARR + BRTHW, 
+dead30_model <- coxme(Surv(DED30, D30yn) ~ SD*DB + diaARR + BRTHW + (1|week/LOAD), 
                    data = FINAL_Analysis)
 summary(dead30_model)
-Anova(dead30_model, type = "III", test.statistic = "LR")
+Anova(dead30_model, type = "III")
 
 test_ph <- cox.zph(dead30_model)
 print(test_ph)
@@ -2284,10 +2721,12 @@ summary(sd_contrasts, type = "response", infer = c(TRUE, TRUE))
 
 #### Death 30d - Dairy
 
+##### Regular Cox Model
+
 ```{r}
 FINAL_Analysis_d$SD <- relevel(as.factor(FINAL_Analysis_d$SD), ref = "3")
 
-dead30_model <- coxph(Surv(DED60, D30yn) ~ SD + diaARR + BRTHW, 
+dead30_model <- coxph(Surv(DED60, D30yn) ~ SD + diaARR + BRTHW + navelex + diaex + transitT, 
                    data = FINAL_Analysis_d)
 summary(dead30_model)
 
@@ -2302,12 +2741,38 @@ sd_contrasts <- pairs(sd_means, reverse = FALSE)
 summary(sd_contrasts, type = "response", infer = c(TRUE, TRUE))
 ```
 
-#### Death 30d - Beef
+##### Cox model with random effects
 
 ```{r}
+FINAL_Analysis_d$SD <- relevel(as.factor(FINAL_Analysis_d$SD), ref = "3")
+
+resp_60d <- coxme(Surv(DED30, D30yn) ~ as.factor(SD) +  diaARR + transitT + BRTHW +  navelex + diaex + (1|LOAD), FINAL_Analysis_d)
+
+summary(resp_60d, type=3)
+Anova(resp_60d, type = "III")
+
+
+
+test_ph <- cox.zph(resp_60d)
+print(test_ph)
+plot(test_ph)
+
+
+sd_means <- emmeans(resp_60d, "SD")
+sd_contrasts <- pairs(sd_means, reverse = FALSE) 
+summary(sd_contrasts, type = "response", infer = c(TRUE, TRUE))
+
+```
+
+#### Death 30d - Beef
+
+##### Regular Cox Model
+
+```{r}
+
 FINAL_Analysis_b$SD <- relevel(as.factor(FINAL_Analysis_b$SD), ref = "3")
 
-dead30_model <- coxph(Surv(DED60, D30yn) ~ SD + diaARR + transitT + BRTHW, 
+dead30_model <- coxph(Surv(DED30, D30yn) ~ SD + diaARR + transitT + BRTHW  + diaex + navelex, 
                    data = FINAL_Analysis_b)
 summary(dead30_model)
 
@@ -2322,16 +2787,38 @@ sd_contrasts <- pairs(sd_means, reverse = FALSE)
 summary(sd_contrasts, type = "response", infer = c(TRUE, TRUE))
 ```
 
-#### Death 60d - ALL
+##### Cox model with random effects
+
+```{r}
+FINAL_Analysis_b$SD <- relevel(as.factor(FINAL_Analysis_b$SD), ref = "3")
+
+dead_30b <- coxme(Surv(DED30, D30yn) ~ as.factor(SD) +  diaARR + BRTHW + transitT + navelex + diaex + (1|LOAD), FINAL_Analysis_b)
+
+summary(dead_30b, type=3)
+Anova(dead_30b, type = "III")
+
+
+
+test_ph <- cox.zph(dead_30b)
+print(test_ph)
+plot(test_ph)
+
+
+sd_means <- emmeans(dead_30b, "SD")
+sd_contrasts <- pairs(sd_means, reverse = FALSE) 
+summary(sd_contrasts, type = "response", infer = c(TRUE, TRUE))
+```
+
+#### Death 60d - FINAL
 
 ```{r}
 
 FINAL_Analysis$SD <- relevel(as.factor(FINAL_Analysis$SD), ref = "3")
 
-dead60_model <- coxph(Surv(DED60, D60yn) ~ SD*DB + sex + diaARR + transitT + BRTHW, 
+dead60_model <- coxme(Surv(DED60, D60yn) ~ SD*DB + diaARR + transitT + BRTHW + (1|week/LOAD), 
                    data = FINAL_Analysis)
 summary(dead60_model)
-Anova(dead60_model, type = "III", test.statistic = "LR")
+Anova(dead60_model, type = "III")
 
 test_ph <- cox.zph(dead30_model)
 print(test_ph)
@@ -2346,15 +2833,17 @@ summary(sd_contrasts, type = "response", infer = c(TRUE, TRUE))
 
 #### Death 60d - Dairy
 
+##### Regular Cox Model
+
 ```{r}
 
 FINAL_Analysis_d$SD <- relevel(as.factor(FINAL_Analysis_d$SD), ref = "3")
 
-dead60_model <- coxph(Surv(DED60, D60yn) ~ SD + diaARR + BRTHW, 
+dead60_model <- coxph(Surv(DED60, D60yn) ~ SD + diaARR + BRTHW + transitT + diaex + navelex, 
                    data = FINAL_Analysis_d)
 summary(dead60_model)
 
-test_ph <- cox.zph(dead30_model)
+test_ph <- cox.zph(dead60_model)
 print(test_ph)
 
 
@@ -2365,22 +2854,68 @@ sd_contrasts <- pairs(sd_means, reverse = FALSE)
 summary(sd_contrasts, type = "response", infer = c(TRUE, TRUE))
 ```
 
+##### Cox model with random effects
+
+```{r}
+FINAL_Analysis_d$SD <- relevel(as.factor(FINAL_Analysis_d$SD), ref = "3")
+
+dead_60d <- coxme(Surv(DED60, D60yn) ~ as.factor(SD) +  diaARR + BRTHW + transitT + navelex + diaex + (1|LOAD), FINAL_Analysis_d)
+
+summary(dead_60d, type=3)
+Anova(dead_60d, type = "III")
+
+
+
+test_ph <- cox.zph(dead_60d)
+print(test_ph)
+plot(test_ph)
+
+
+sd_means <- emmeans(dead_60d, "SD")
+sd_contrasts <- pairs(sd_means, reverse = FALSE) 
+summary(sd_contrasts, type = "response", infer = c(TRUE, TRUE))
+```
+
 #### Death 60d - Beef
+
+##### Regular Cox Model
 
 ```{r}
 FINAL_Analysis_b$SD <- relevel(as.factor(FINAL_Analysis_b$SD), ref = "3")
 
-dead60_model <- coxph(Surv(DED60, D60yn) ~ SD + diaARR + BRTHW, 
+dead60_model <- coxph(Surv(DED60, D60yn) ~ SD + diaARR + BRTHW + transitT + diaex + navelex, 
                    data = FINAL_Analysis_b)
 summary(dead60_model)
 
-test_ph <- cox.zph(dead30_model)
+test_ph <- cox.zph(dead60_model)
 print(test_ph)
 
 
 plot(test_ph)
 
 sd_means <- emmeans(dead60_model, "SD")
+sd_contrasts <- pairs(sd_means, reverse = FALSE) 
+summary(sd_contrasts, type = "response", infer = c(TRUE, TRUE))
+```
+
+##### Cox model with random effects
+
+```{r}
+FINAL_Analysis_b$SD <- relevel(as.factor(FINAL_Analysis_b$SD), ref = "3")
+
+dead_60b <- coxme(Surv(DED60, D60yn) ~ as.factor(SD) +  diaARR + BRTHW + transitT + navelex + diaex + (1|LOAD), FINAL_Analysis_b)
+
+summary(dead_60b, type=3)
+Anova(dead_60b, type = "III")
+
+
+
+test_ph <- cox.zph(dead_60b)
+print(test_ph)
+plot(test_ph)
+
+
+sd_means <- emmeans(dead_60b, "SD")
 sd_contrasts <- pairs(sd_means, reverse = FALSE) 
 summary(sd_contrasts, type = "response", infer = c(TRUE, TRUE))
 ```
