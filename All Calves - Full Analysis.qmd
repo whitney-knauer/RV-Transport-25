@@ -693,7 +693,7 @@ FINAL7_new <- FINAL7_new %>%
 #now clean up the data set!
 
 FINAL_Analysis <- FINAL7_new %>% 
-  select(ID, sex, Breed2, stp, BRTHW, SORCE, SD, DB, diaload, diaARR, LOAD, week, transitT, PN1a, PN2a, DIA1, D30, P30, P60, D30yn, D60yn, diaex, navelex, DIA30, PNEU30, PNEU60, Nav30, N30, DED30, DED60, Remark_PNEU1, Remark_DIED1)
+  select(ID, sex, Breed2, stp, BRTHW, SORCE, SD, DB, diaload, diaARR, LOAD, week, transitT, PN1a, PN2a, DIA1, D30, P30, P60, D30yn, D60yn, diaex, navelex, DIA30, PNEU30, PNEU60, Nav30, N30, DED30, DED60, Remark_PNEU1, Remark_SCOURS1, Remark_DIED1)
 
 FINAL_Analysis <- FINAL_Analysis %>%
   mutate(SD_DB = paste(SD, DB, sep = "_"))
@@ -729,6 +729,12 @@ FINAL_Analysis %>%
   summarize(
     dfa_mean = mean(DIA30),
     dfa_sd   = sd(DIA30))
+
+FINAL_Analysis %>% 
+  filter(diaex == 0) %>% 
+  group_by(Remark_SCOURS1, DB) %>% 
+  summarize(
+    count = n())
 
 
 #Navel30
@@ -2232,7 +2238,7 @@ FINAL_Analysis_filt <- FINAL_Analysis %>%
 
 FINAL_Analysis_filt$SD <- relevel(as.factor(FINAL_Analysis_filt$SD), ref = "3")
 
-dia30_model <- coxme(Surv(DIA30, D30) ~ SD*DB  + transitT + BRTHW + (1|week/LOAD), 
+dia30_model <- coxme(Surv(DIA30, D30) ~ SD*DB  + transitT + BRTHW + diaARR + (1|week/LOAD), 
                    data = FINAL_Analysis_filt)
 summary(dia30_model)
 Anova(dia30_model, type = "III")
@@ -2575,7 +2581,7 @@ summary(sd_contrasts, type = "response", infer = c(TRUE, TRUE))
 
 FINAL_Analysis$SD <- relevel(as.factor(FINAL_Analysis$SD), ref = "3")
 
-resp60_model <- coxme(Surv(PNEU60, P60) ~ SD*DB + transitT + diaARR + BRTHW + (1|week/LOAD), data = FINAL_Analysis)
+resp60_model <- coxme(Surv(PNEU60, P60) ~ SD*DB + transitT + diaARR + BRTHW + navelex + diaex + (1|week/LOAD), data = FINAL_Analysis)
 
 summary(resp60_model)
 Anova(resp60_model, type = "III")
@@ -2703,7 +2709,7 @@ summary(sd_contrasts, type = "response", infer = c(TRUE, TRUE))
 
 FINAL_Analysis$SD <- relevel(as.factor(FINAL_Analysis$SD), ref = "3")
 
-dead30_model <- coxme(Surv(DED30, D30yn) ~ SD*DB + diaARR + BRTHW + (1|week/LOAD), 
+dead30_model <- coxme(Surv(DED30, D30yn) ~ SD*DB + transitT + diaARR + BRTHW +diaex + navelex + (1|week/LOAD), 
                    data = FINAL_Analysis)
 summary(dead30_model)
 Anova(dead30_model, type = "III")
@@ -2815,7 +2821,7 @@ summary(sd_contrasts, type = "response", infer = c(TRUE, TRUE))
 
 FINAL_Analysis$SD <- relevel(as.factor(FINAL_Analysis$SD), ref = "3")
 
-dead60_model <- coxme(Surv(DED60, D60yn) ~ SD*DB + diaARR + transitT + BRTHW + (1|week/LOAD), 
+dead60_model <- coxme(Surv(DED60, D60yn) ~ SD*DB + diaARR + transitT + diaex + navelex + BRTHW + (1|week/LOAD), 
                    data = FINAL_Analysis)
 summary(dead60_model)
 Anova(dead60_model, type = "III")

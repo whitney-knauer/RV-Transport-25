@@ -1416,7 +1416,7 @@ anova(mod_base, mod_ar1, mod_rs)
 #AR1 is best based on model fit. 
 
 mod_ar1 <- lme(
-  fixed = lyingm ~ hoursfrom_fact * TRT + diaload ,
+  fixed = lyingm ~ hoursfrom_fact * TRT + diaload  + BRTHW + TimeTrip ,
   random = ~ 1 | Cow,
   correlation = corAR1(form = ~ hours_num | Cow),
   data = analysis_data_full_f)
@@ -1457,7 +1457,7 @@ ggplot(emm_df, aes(x = hoursfrom_fact, y = emmean, color = TRT, group = TRT)) +
 #Analysis by cattime? 
 
 
-lm_lay <-lmer(lyingm ~TRT*timecat + diaload + BRTHW + (1|Cow), data=analysis_data_full_f)
+lm_lay <-lmer(lyingm ~TRT*timecat + diaload + TimeTrip +  BRTHW + (1|Cow), data=analysis_data_full_f)
 summary(lm_lay)
 emmeans(lm_lay, ~TRT|timecat)
 anova(lm_lay, type = 3)
@@ -1514,7 +1514,7 @@ anova(mod_base, mod_ar1, mod_rs)
 #AR1 is best based on model fit. 
 
 mod_ar1 <- lme(
-  fixed = standingm ~ hoursfrom_fact * TRT + diaload ,
+  fixed = standingm ~ hoursfrom_fact * TRT + diaload + BRTHW + TimeTrip,
   random = ~ 1 | Cow,
   correlation = corAR1(form = ~ hours_num | Cow),
   data = analysis_data_full_f)
@@ -1554,7 +1554,7 @@ ggplot(emm_df, aes(x = hoursfrom_fact, y = emmean, color = TRT, group = TRT)) +
 #Analysis by cattime? 
 
 
-lm_stand <-lmer(standingm ~TRT*timecat + diaload + BRTHW + (1|Cow), data=analysis_data_full_f)
+lm_stand <-lmer(standingm ~TRT*timecat + diaload + BRTHW + TimeTrip + (1|Cow), data=analysis_data_full_f)
 summary(lm_stand)
 emmeans(lm_stand, ~TRT|timecat)
 plot(lm_stand)
@@ -1693,7 +1693,7 @@ anova(mod_base, mod_ar1)
 #AR1 is best based on model fit. 
 
 mod_ar1 <- lme(
-  fixed = mi ~ hoursfrom_fact * TRT + diaload ,
+  fixed = mi ~ hoursfrom_fact * TRT + diaload + BRTHW + TimeTrip,
   random = ~ 1 | Cow,
   correlation = corAR1(form = ~ hours_num | Cow),
   data = analysis_data_full_f)
@@ -1733,7 +1733,7 @@ ggplot(emm_df, aes(x = hoursfrom_fact, y = emmean, color = TRT, group = TRT)) +
 #Analysis by cattime? 
 
 
-lm_lay <-lmer(mi ~TRT*timecat + diaload + BRTHW + (1|Cow), data=analysis_data_full_f)
+lm_lay <-lmer(mi ~TRT*timecat + diaload + BRTHW + TimeTrip + (1|Cow), data=analysis_data_full_f)
 summary(lm_lay)
 emmeans(lm_lay, ~TRT|timecat)
 plot(lm_lay)
