@@ -44,6 +44,7 @@ library(survival)
 library(survminer)
 library(patchwork)
 library(coxme)
+library(marginaleffects)
 ```
 
 ### Data Steps
@@ -2256,6 +2257,8 @@ summary(sd_contrasts, type = "response", infer = c(TRUE, TRUE))
 
 
 
+
+
 ```
 
 #### Scours 30d - Dairy
@@ -2451,6 +2454,7 @@ interaction_means <- emmeans(nav30_model, ~SD|DB)
 sd_contrasts <- pairs(interaction_means, reverse = FALSE) 
 summary(sd_contrasts, type = "response", infer = c(TRUE, TRUE))
 
+
 ```
 
 #### Navel 30 - Dairy
@@ -2595,6 +2599,8 @@ plot(test_ph)
 sd_means <- emmeans(resp60_model, ~ SD|DB)
 sd_contrasts <- pairs(sd_means, reverse = FALSE) 
 summary(sd_contrasts, type = "response", infer = c(TRUE, TRUE))
+
+
 ```
 
 #### Resp 60d - Dairy
@@ -2723,6 +2729,9 @@ plot(test_ph)
 sd_means <- emmeans(dead30_model, ~ SD|DB)
 sd_contrasts <- pairs(sd_means, reverse = FALSE) 
 summary(sd_contrasts, type = "response", infer = c(TRUE, TRUE))
+
+
+
 ```
 
 #### Death 30d - Dairy
@@ -2835,6 +2844,8 @@ plot(test_ph)
 sd_means <- emmeans(dead60_model, ~SD|DB)
 sd_contrasts <- pairs(sd_means, reverse = FALSE) 
 summary(sd_contrasts, type = "response", infer = c(TRUE, TRUE))
+
+
 ```
 
 #### Death 60d - Dairy
