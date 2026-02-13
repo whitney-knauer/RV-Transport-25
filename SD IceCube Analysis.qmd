@@ -239,6 +239,14 @@ key |>
              mean = mean(TimeTrip), 
              sd = sd(TimeTrip))
 
+
+key |> 
+  group_by(TRT) |> 
+  filter(OneLoad == 1) %>% 
+  summarize (Count = n(), 
+             mean = mean(TimeTrip), 
+             sd = sd(TimeTrip))
+
 key$TRT <- relevel(factor(key$TRT), ref = "DF3.0")
 lm_bw <- lm(TimeTrip ~ TRT, data=key)
 summary(lm_bw)
@@ -772,28 +780,28 @@ ggplot(aes(x = hoursfrom, y = steps, color=TRT)) +
     scale_x_continuous(limits = c(-16, 50), breaks = seq(-16, 50, by = 8))
 
 
-stepgrp_f <- merged_data_f |> 
-  filter(hoursfrom >= -16 & hoursfrom <= 50) |> 
-  group_by(Cow, hoursfrom, TRT) |>  
-  summarize(
-    `Steps` = sum(`Steps`, na.rm = TRUE)) |> 
-  group_by(hoursfrom, TRT) |>  
-  summarize(
-    steps = mean(`Steps`, na.rm = TRUE)) |> 
-  ungroup()
+#stepgrp_f <- merged_data_f |> 
+#  filter(hoursfrom >= -16 & hoursfrom <= 50) |> 
+#  group_by(Cow, hoursfrom, TRT) |>  
+#  summarize(
+#    `Steps` = sum(`Steps`, na.rm = TRUE)) |> 
+#  group_by(hoursfrom, TRT) |>  
+#  summarize(
+#    steps = mean(`Steps`, na.rm = TRUE)) |> 
+#  ungroup()
 
 
-stepgrp_f |> 
-ggplot(aes(x = hoursfrom, y = steps, color=TRT)) +
-  theme_classic() +
-  geom_point() +  
-  geom_line() +   
-  labs(
-    title = "Steps in the 48hrs around transportation",
-    x = "Hours from Transport",
-    y = "Steps(n)") +
-    scale_y_continuous(limits = c(0, 200), breaks = seq(0, 200, by = 50))+
-    scale_x_continuous(limits = c(-16, 50), breaks = seq(-16, 50, by = 8))
+#stepgrp_f |> 
+#ggplot(aes(x = hoursfrom, y = steps, color=TRT)) +
+#  theme_classic() +
+#  geom_point() +  
+#  geom_line() +   
+#  labs(
+#    title = "Steps in the 48hrs around transportation",
+#    x = "Hours from Transport",
+#    y = "Steps(n)") +
+#    scale_y_continuous(limits = c(0, 200), breaks = seq(0, 200, by = 50))+
+#    scale_x_continuous(limits = c(-16, 50), breaks = seq(-16, 50, by = 8))
 
 ```
 
@@ -853,28 +861,28 @@ ggplot(aes(x = hoursfrom, y = lb, color=TRT)) +
 
 
 
-stepgrp2_f <- merged_data_f |> 
-  filter(hoursfrom >= -16 & hoursfrom <= 50) |> 
-  group_by(Cow, hoursfrom, TRT) |>  
-  summarize(
-    `Transitions` = sum(`Transitions`, na.rm = TRUE)) |> 
-  group_by(hoursfrom, TRT) |>  
-  summarize(
-    lb = mean(`Transitions`, na.rm = TRUE)) |> 
-  ungroup()
+#stepgrp2_f <- merged_data_f |> 
+#  filter(hoursfrom >= -16 & hoursfrom <= 50) |> 
+#  group_by(Cow, hoursfrom, TRT) |>  
+#  summarize(
+#    `Transitions` = sum(`Transitions`, na.rm = TRUE)) |> 
+#  group_by(hoursfrom, TRT) |>  
+#  summarize(
+ #   lb = mean(`Transitions`, na.rm = TRUE)) |> 
+#  ungroup()
 
 
-stepgrp2_f |> 
-ggplot(aes(x = hoursfrom, y = lb, color=TRT)) +
-  theme_classic() +
-  geom_point() +  
-  geom_line() +   
-  labs(
-    title = "Transitions in the 48hrs around transportation",
-    x = "Hours from Transport",
-    y = "Transitions(n)") +
-    scale_y_continuous(limits = c(0, 8), breaks = seq(0, 8, by = 2))+
-    scale_x_continuous(limits = c(-16, 50), breaks = seq(-16, 50, by = 8))
+#stepgrp2_f |> 
+#ggplot(aes(x = hoursfrom, y = lb, color=TRT)) +
+#  theme_classic() +
+#  geom_point() +  
+# geom_line() +   
+#  labs(
+#    title = "Transitions in the 48hrs around transportation",
+#    x = "Hours from Transport",
+#    y = "Transitions(n)") +
+#    scale_y_continuous(limits = c(0, 8), breaks = seq(0, 8, by = 2))+
+#    scale_x_continuous(limits = c(-16, 50), breaks = seq(-16, 50, by = 8))
 ```
 
 #### Motion Index
@@ -932,28 +940,28 @@ ggplot(aes(x = hoursfrom, y = mi, color=TRT)) +
     scale_x_continuous(limits = c(-16, 50), breaks = seq(-16, 50, by = 10))
 
 
-migrp2_f <- merged_data_f |> 
-  filter(hoursfrom >= -16 & hoursfrom <= 50) |> 
-  group_by(Cow, hoursfrom, TRT) |>  
-  summarize(
-    `Motion Index` = sum(`Motion Index`, na.rm = TRUE)) |> 
-  group_by(hoursfrom, TRT) |>  
-  summarize(
-    mi = mean(`Motion Index`, na.rm = TRUE)) |> 
-  ungroup()
+#migrp2_f <- merged_data_f |> 
+#  filter(hoursfrom >= -16 & hoursfrom <= 50) |> 
+#  group_by(Cow, hoursfrom, TRT) |>  
+#  summarize(
+#    `Motion Index` = sum(`Motion Index`, na.rm = TRUE)) |> 
+#  group_by(hoursfrom, TRT) |>  
+#  summarize(
+#    mi = mean(`Motion Index`, na.rm = TRUE)) |> 
+#  ungroup()
 
 
-migrp2_f |> 
-ggplot(aes(x = hoursfrom, y = mi, color=TRT)) +
-  theme_classic() +
-  geom_point() +  
-  geom_line() +   
-  labs(
-    title = "Motion Index the 48hrs around transportation",
-    x = "Hours from Transport",
-    y = "MI") +
-    scale_y_continuous(limits = c(0, 1000), breaks = seq(0, 1000, by = 250))+
-    scale_x_continuous(limits = c(-16, 50), breaks = seq(-16, 50, by = 10))
+#migrp2_f |> 
+#ggplot(aes(x = hoursfrom, y = mi, color=TRT)) +
+#  theme_classic() +
+#  geom_point() +  
+#  geom_line() +   
+#  labs(
+#    title = "Motion Index the 48hrs around transportation",
+#    x = "Hours from Transport",
+ #   y = "MI") +
+ #   scale_y_continuous(limits = c(0, 1000), breaks = seq(0, 1000, by = 250))+
+ #  scale_x_continuous(limits = c(-16, 50), breaks = seq(-16, 50, by = 10))
 
 
 
@@ -1328,13 +1336,13 @@ ggplot(aes(x = hoursfrom, y = mi, color=TRT)) +
 
 #### New Data Set
 
-This analysis data set includes data from calves 12 hours before (-12) to 12 hours after (26h + 12h = 38h) travel. Can tweak as needed, but I am not confident about the quality of the data post arrival as it looks like the 3.5DF were removed about hour 30 (4h after arrival) . We can do 24h as well which would be 28 + 24 = 52h. Actually, let's do that. Chose -12 bc it's evident that one group (SD 3.5) only had their stuff on 16h prior.
+This analysis data set includes data from calves 12 hours before (-12) to 12 hours after (26h + 24h = 50h) travel. Can tweak as needed, but I am not confident about the quality of the data post arrival as it looks like the 3.5DF were removed about hour 30 (4h after arrival) . We can do 24h as well which would be 28 + 24 = 52h. Actually, let's do that. Chose -12 bc it's evident that one group (SD 3.5) only had their stuff on 16h prior.
 
 ```{r}
 
 analysis_data_full <- merged_data |> 
   filter(OneLoad == 1)|>
-  filter(hoursfrom >= -12 & hoursfrom <= 38) %>% 
+  filter(hoursfrom >= -12 & hoursfrom <= 50) %>% 
   group_by(Cow, hoursfrom) |>
   summarize(
     lyingm = as.numeric(sum(`Lying Time`/60, na.rm = TRUE)), 
@@ -1445,7 +1453,7 @@ ggplot(emm_df, aes(x = hoursfrom_fact, y = emmean, color = TRT, group = TRT)) +
     y = "Estimated Marginal Means of Lying Time") +
   theme_classic() +
   scale_y_continuous(limits = c(0, 61), breaks = seq(0, 61, by = 10))+
-  scale_x_discrete(breaks = seq(-16, 40, by = 4)) +
+  scale_x_discrete(breaks = seq(-16, 50, by = 4)) +
       theme (legend.position = "top", 
          legend.direction = "horizontal", 
               axis.text = element_text(color = "black", size=10), 
@@ -1542,7 +1550,7 @@ ggplot(emm_df, aes(x = hoursfrom_fact, y = emmean, color = TRT, group = TRT)) +
     y = "Estimated Marginal Means of Standing Time") +
   theme_classic() +
   scale_y_continuous(limits = c(0, 60), breaks = seq(0, 60, by = 10))+
-  scale_x_discrete(breaks = seq(-16, 40, by = 4)) +
+  scale_x_discrete(breaks = seq(-16, 50, by = 4)) +
       theme (legend.position = "top", 
          legend.direction = "horizontal", 
               axis.text = element_text(color = "black", size=10), 
@@ -1721,7 +1729,7 @@ ggplot(emm_df, aes(x = hoursfrom_fact, y = emmean, color = TRT, group = TRT)) +
     y = "Estimated Marginal Means MI") +
   theme_classic() +
   scale_y_continuous(limits = c(0, 1300), breaks = seq(0, 1300, by = 100))+
-  scale_x_discrete(breaks = seq(-16, 40, by = 4)) +
+  scale_x_discrete(breaks = seq(-16, 50, by = 4)) +
       theme (legend.position = "top", 
          legend.direction = "horizontal", 
               axis.text = element_text(color = "black", size=10), 

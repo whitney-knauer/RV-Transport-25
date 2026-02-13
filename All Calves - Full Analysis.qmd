@@ -2715,7 +2715,7 @@ summary(sd_contrasts, type = "response", infer = c(TRUE, TRUE))
 
 FINAL_Analysis$SD <- relevel(as.factor(FINAL_Analysis$SD), ref = "3")
 
-dead30_model <- coxme(Surv(DED30, D30yn) ~ SD*DB + transitT + diaARR + BRTHW +diaex + navelex + (1|week/LOAD), 
+dead30_model <- coxme(Surv(DED30, D30yn) ~ SD + DB + transitT + diaARR + BRTHW +diaex + navelex + (1|week/LOAD), 
                    data = FINAL_Analysis)
 summary(dead30_model)
 Anova(dead30_model, type = "III")
@@ -2726,7 +2726,7 @@ print(test_ph)
 
 plot(test_ph)
 
-sd_means <- emmeans(dead30_model, ~ SD|DB)
+sd_means <- emmeans(dead30_model, ~ SD)
 sd_contrasts <- pairs(sd_means, reverse = FALSE) 
 summary(sd_contrasts, type = "response", infer = c(TRUE, TRUE))
 
@@ -2830,7 +2830,7 @@ summary(sd_contrasts, type = "response", infer = c(TRUE, TRUE))
 
 FINAL_Analysis$SD <- relevel(as.factor(FINAL_Analysis$SD), ref = "3")
 
-dead60_model <- coxme(Surv(DED60, D60yn) ~ SD*DB + diaARR + transitT + diaex + navelex + BRTHW + (1|week/LOAD), 
+dead60_model <- coxme(Surv(DED60, D60yn) ~ SD + DB + diaARR + transitT + diaex + navelex + BRTHW + (1|week/LOAD), 
                    data = FINAL_Analysis)
 summary(dead60_model)
 Anova(dead60_model, type = "III")
@@ -2841,7 +2841,7 @@ print(test_ph)
 
 plot(test_ph)
 
-sd_means <- emmeans(dead60_model, ~SD|DB)
+sd_means <- emmeans(dead60_model, ~SD)
 sd_contrasts <- pairs(sd_means, reverse = FALSE) 
 summary(sd_contrasts, type = "response", infer = c(TRUE, TRUE))
 
