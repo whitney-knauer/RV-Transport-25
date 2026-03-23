@@ -276,6 +276,14 @@ FINAL7_new %>%
   count()
 
 FINAL7_new %>% 
+  group_by(Remark_PNEU1, DB) %>% 
+  summarize(
+    dfaP1 = mean(dfaP1))
+
+
+
+
+FINAL7_new %>% 
   group_by(Remark_PNEU2) %>% 
   count()
 
@@ -482,6 +490,17 @@ FINAL7_new %>%
 
 FINAL7_new %>% 
   group_by(SD, DBxS) %>% 
+  summarize(
+    prop_P1 = mean(PN1a, na.rm=TRUE),
+    prop_P2 = mean(PN2a, na.rm=TRUE),
+    meandfaP1 = mean(dfaPN1a, na.rm = TRUE), 
+    meandfaP2 = mean(dfaPN2a, na.rm = TRUE),
+    prop_DED = mean(DIED), 
+    avg_DED = mean(dfaDIED, na.rm=TRUE))
+
+
+FINAL7_new %>% 
+  group_by(Remark_PNEU1, DB) %>% 
   summarize(
     prop_P1 = mean(PN1a, na.rm=TRUE),
     prop_P2 = mean(PN2a, na.rm=TRUE),
