@@ -399,6 +399,18 @@ FINAL7_new %>%
   group_by(SD) %>% 
   summarize (Count = n())
 
+
+FINAL7_new %>% 
+  summarize (
+    meanage = mean(diaload), 
+    sdage = sd (diaload))
+    
+
+
+FINAL7_new %>% 
+  group_by(DB) %>% 
+  summarize (Count = n())
+
 FINAL7_new |> 
   group_by(SD, Sex) |> 
   summarize (Count = n())
@@ -456,7 +468,7 @@ FINAL7_new |>
 
 
 FINAL7_new |> 
-  group_by(SD, DB) |> 
+  group_by(DB) |> 
   summarize (
     bwt = mean(BRTHW), 
     bwtsd = sd(BRTHW),
