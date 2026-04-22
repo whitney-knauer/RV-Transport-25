@@ -1839,3 +1839,61 @@ emm_lay <- emmeans(lm_lay, ~ TRT | timecat)
 contrast_results <- pairs(emm_lay, reverse = FALSE)
 summary(contrast_results, adjust = "tukey")
 ```
+
+### Graph of ST average
+
+```{r}
+# Load necessary library
+library(ggplot2)
+
+# 1. Create the dataset for Lying Time only
+lying_data <- data.frame(
+  Period = factor(rep(c("Pre", "During", "Post"), each = 3), 
+                  levels = c("Pre", "During", "Post")),
+  StockingDensity = rep(c("3.0", "3.5", "4.5"), times = 3),
+  MeanTime = c(
+    # Pre (-12 to 0h)
+    51.9, 51.3, 49.8,
+    # During (0 to 26h)
+    33.0, 36.1, 39.4,
+    # Post (26 to 50h)
+    50.5, 36.9, 46.6
+  ),
+  LowerCI = c(
+    # Pre CI Lower
+    50.7, 50.0, 48.4,
+    # During CI Lower
+    32.0, 35.0, 38.2,
+    # Post CI Lower
+    49.5, 34.8, 45.4
+  ),
+  UpperCI = c(
+    # Pre CI Upper
+    53.1, 52.6, 51.2,
+    # During CI Upper
+    34.0, 37.2, 40.6,
+    # Post CI Upper
+    51.6, 39.0, 47.8
+  )
+)
+
+# 2. Generate the line graph
+custom_colors <- c("3.0" = "red4", "3.5" = "goldenrod2", "4.5" = "wheat4")
+ggplot(lying_data, aes(x = Period, y = MeanTime, group = StockingDensity, color = StockingDensity)) +
+  theme_classic () +
+  geom_line() +   
+  scale_color_manual(values=custom_colors)+
+  # Draw lines
+  geom_point() +                         # Add points at each data node
+  geom_errorbar(aes(ymin = LowerCI, ymax = UpperCI), 
+                width = 0.1, alpha = 0.7) +      # Add 95% CI error bars
+  labs(
+    y = "Lying Time (min/hr)",
+    color = "Stocking Density")+
+  theme(
+    legend.position = "bottom",
+    panel.grid.minor = element_blank()
+  ) +
+  scale_y_continuous(limits = c(30, 60)) +
+  theme(text=element_text(size=12, family = "Times New Roman"))# Adjust Y-axis for better visibility
+```
