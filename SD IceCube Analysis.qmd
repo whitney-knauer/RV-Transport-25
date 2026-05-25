@@ -1878,8 +1878,9 @@ lying_data <- data.frame(
 )
 
 # 2. Generate the line graph
+#the data subset step removes the point on the graph for the SD 3.5 after as that only represents like 3 calves. 
 custom_colors <- c("3.0" = "red4", "3.5" = "goldenrod2", "4.5" = "wheat4")
-ggplot(lying_data, aes(x = Period, y = MeanTime, group = StockingDensity, color = StockingDensity)) +
+ggplot(data = subset (lying_data, !(Period =="Post" & StockingDensity == "3.5")), aes(x = Period, y = MeanTime, group = StockingDensity, color = StockingDensity)) +
   theme_classic () +
   geom_line() +   
   scale_color_manual(values=custom_colors)+

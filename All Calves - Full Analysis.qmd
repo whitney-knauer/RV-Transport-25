@@ -97,7 +97,7 @@ write.csv(x = full, file = "data/full.csv")
 
 full_new <- 
   full %>% 
-  select( ID, EID.x, BIRTH, sex, BREED,Breed2, TRVHR, time, BRTHW, SERUM, SORCE, TRL2.x, LOADT, Date_PNEU1, Remark_PNEU1, Date_PNEU2, Remark_PNEU2, Date_PNEU3, Remark_PNEU3, Date_SCOURS1, Remark_SCOURS1, Date_SCOURS2, Remark_SCOURS2, Date_BLOAT1, Remark_BLOAT1, Date_BLOAT2, Remark_BLOAT2, Date_NAVEL1, Remark_NAVEL1, Date_NAVEL2, Remark_NAVEL2, Date_NAVEL3, Remark_NAVEL3, Date_DIED1, Remark_DIED1)
+  dplyr::select(ID, EID.x, BIRTH, sex, BREED,Breed2, TRVHR, time, BRTHW, SERUM, SORCE, TRL2.x, LOADT, Date_PNEU1, Remark_PNEU1, Date_PNEU2, Remark_PNEU2, Date_PNEU3, Remark_PNEU3, Date_SCOURS1, Remark_SCOURS1, Date_SCOURS2, Remark_SCOURS2, Date_BLOAT1, Remark_BLOAT1, Date_BLOAT2, Remark_BLOAT2, Date_NAVEL1, Remark_NAVEL1, Date_NAVEL2, Remark_NAVEL2, Date_NAVEL3, Remark_NAVEL3, Date_DIED1, Remark_DIED1)
 
 full_new$TRL2 = as.character(full_new$TRL2.x)
 
@@ -675,13 +675,13 @@ FINAL7_new <- FINAL7_new %>%
 
 FINAL7_new <- FINAL7_new %>% 
   mutate(
-    Nav30 = if_else(navelex == 0,
-                    coalesce(dfaN1, 30),
+    Nav10 = if_else(navelex == 0,
+                    coalesce(dfaN1, 10),
                     NA_real_))
 
 FINAL7_new <- FINAL7_new %>% 
   mutate(
-    N30 = if_else(Nav30 < 30, 1L, 0L))
+    N10 = if_else(Nav30 < 10, 1L, 0L))
 
 FINAL7_new <- FINAL7_new %>% 
   mutate(
@@ -725,7 +725,7 @@ FINAL7_new <- FINAL7_new %>%
 #now clean up the data set!
 
 FINAL_Analysis <- FINAL7_new %>% 
-  select(ID, sex, Breed2, stp, BRTHW, SORCE, SD, DB, diaload, diaARR, LOAD, week, transitT, PN1a, PN2a, DIA1, D30, P30, P60, D30yn, D60yn, diaex, navelex, DIA30, PNEU30, PNEU60, Nav30, N30, DED30, DED60, Remark_PNEU1, Remark_SCOURS1, Remark_DIED1)
+  dplyr::select(ID, sex, Breed2, stp, BRTHW, SORCE, SD, DB, diaload, diaARR, LOAD, week, transitT, PN1a, PN2a, DIA1, D30, P30, P60, D30yn, D60yn, diaex, navelex, DIA30, PNEU30, PNEU60, Nav10, N10, DED30, DED60, Remark_PNEU1, Remark_SCOURS1, Remark_DIED1)
 
 FINAL_Analysis <- FINAL_Analysis %>%
   mutate(SD_DB = paste(SD, DB, sep = "_"))
@@ -769,7 +769,7 @@ FINAL_Analysis %>%
     count = n())
 
 
-#Navel30
+#Navel10
 FINAL_Analysis %>% 
   filter(navelex == 1) %>% 
   group_by(SD) %>% 
@@ -782,24 +782,24 @@ FINAL_Analysis %>%
   group_by(SD) %>% 
   summarize(
     count = n(),
-    prop_Nav = mean(N30, na.rm=TRUE), 
-    sum_Nav  = sum(N30, na.rm=TRUE))
+    prop_Nav = mean(N10, na.rm=TRUE), 
+    sum_Nav  = sum(N10, na.rm=TRUE))
 
 FINAL_Analysis %>% 
   filter(navelex == 0) %>% 
   group_by(SD, DB) %>% 
   summarize(
     count = n(),
-    prop_Nav = mean(N30, na.rm=TRUE), 
-    sum_Nav  = sum(N30, na.rm=TRUE))
+    prop_Nav = mean(N10, na.rm=TRUE), 
+    sum_Nav  = sum(N10, na.rm=TRUE))
 
 
 FINAL_Analysis %>% 
   filter(diaex == 0) %>% 
-  group_by(SD, N30) %>% 
+  group_by(SD, N10) %>% 
   summarize(
-    dfa_mean = mean(Nav30),
-    dfa_sd   = sd(Nav30))
+    dfa_mean = mean(Nav10),
+    dfa_sd   = sd(Nav10))
 
 
 
@@ -911,7 +911,7 @@ CrossTable (FINAL_Analysis$diaex, FINAL_Analysis$navelex)
 
 #So, 416 were diarrhea only, 396 were navel only, and 4 were both. How to handle? 
 
-CrossTable (FINAL_Analysis$DIA1, FINAL_Analysis$N30)
+CrossTable (FINAL_Analysis$DIA1, FINAL_Analysis$N10)
 
 #29 had both a dia and NAV. 
 
@@ -1132,17 +1132,17 @@ ggsurvplot(
 
 ```
 
-#### Navel 30d
+#### Navel 10d
 
 ```{r}
 
-#Navel Infection to 30d. 
+#Navel Infection to 10d. 
 FINAL_Analysis_filt_n <- FINAL_Analysis %>% 
   filter(navelex != 1)
 
 surv_obj <- Surv(
-  time  = FINAL_Analysis_filt_n$Nav30,
-  event = FINAL_Analysis_filt_n$N30)
+  time  = FINAL_Analysis_filt_n$Nav10,
+  event = FINAL_Analysis_filt_n$N10)
 
 fit <- survfit(
   surv_obj ~ SD,
@@ -1157,9 +1157,9 @@ ggsurvplot(
   risk.table = FALSE,
   xlab = "Time (days)",
   ylab = "Scours Treatment Survival Probability",
-  xlim = c(0, 28),
+  xlim = c(0, 10),
   ylim = c(0.9, 1.0),
-  break.time.by = 7)
+  break.time.by = 2)
 
 
 
@@ -1169,8 +1169,8 @@ ggsurvplot(
 #scours to 30d.DAIRY vs. BEEF 
 
 surv_obj <- Surv(
-  time  = FINAL_Analysis_filt_n$Nav30,
-  event = FINAL_Analysis_filt_n$N30)
+  time  = FINAL_Analysis_filt_n$Nav10,
+  event = FINAL_Analysis_filt_n$N10)
 
 fit <- survfit(
   surv_obj ~ DB,
@@ -1185,15 +1185,15 @@ ggsurvplot(
   risk.table = FALSE,
   xlab = "Time (days)",
   ylab = "Scours Treatment Survival Probability",
-  xlim = c(0, 28),
+  xlim = c(0, 10),
   ylim = c(0.9, 1.0),
-  break.time.by = 7)
+  break.time.by = 2)
 
 #LOAD
 
 surv_obj <- Surv(
-  time  = FINAL_Analysis_filt_n$Nav30,
-  event = FINAL_Analysis_filt_n$N30)
+  time  = FINAL_Analysis_filt_n$Nav10,
+  event = FINAL_Analysis_filt_n$N10)
 
 fit <- survfit(
   surv_obj ~ LOAD,
@@ -1208,10 +1208,10 @@ ggsurvplot(
   risk.table = FALSE,
   xlab = "Time (days)",
   ylab = "Scours Treatment Survival Probability",
-  xlim = c(0, 28),
+  xlim = c(0, 10),
   ylim = c(0.9, 1.0),
   legend = "none",
-  break.time.by = 7)
+  break.time.by = 2)
 
 #~5% variation by load. 
 
@@ -1219,8 +1219,8 @@ ggsurvplot(
 #WEEK
 
 surv_obj <- Surv(
-  time  = FINAL_Analysis_filt_n$Nav30,
-  event = FINAL_Analysis_filt_n$N30)
+  time  = FINAL_Analysis_filt_n$Nav10,
+  event = FINAL_Analysis_filt_n$N10)
 
 fit <- survfit(
   surv_obj ~ week,
@@ -1235,9 +1235,9 @@ ggsurvplot(
   risk.table = FALSE,
   xlab = "Time (days)",
   ylab = "Scours Treatment Survival Probability",
-  xlim = c(0, 28),
+  xlim = c(0, 10),
   ylim = c(0.9, 1.0),
-  break.time.by = 7)
+  break.time.by = 2)
 
 #~5% by week, week G was the worst. 
 
@@ -1820,7 +1820,7 @@ ggsurvplot(
 
 ```
 
-#### Navel 30
+#### Navel 10
 
 ```{r}
 
@@ -1833,8 +1833,8 @@ custom_colors <- c(
   "SD=4.5" = "wheat4")
 
 surv_obj <- Surv(
-  time  = FINAL_Analysis_filt_n$Nav30,
-  event = FINAL_Analysis_filt_n$N30)
+  time  = FINAL_Analysis_filt_n$Nav10,
+  event = FINAL_Analysis_filt_n$N10)
 
 fit <- survfit(
   surv_obj ~ SD_DB,
@@ -1849,9 +1849,9 @@ ggsurvplot(
   risk.table = FALSE,
   xlab = "Time (days)",
   ylab = "Navel Treatment Survival Probability",
-  xlim = c(0, 28),
+  xlim = c(0, 10),
   ylim = c(0.9, 1.0),
-  break.time.by = 7)
+  break.time.by = 2)
 
 
 #Dairy
@@ -1861,8 +1861,8 @@ FINAL_Analysis_filt_nd <- FINAL_Analysis_filt_n %>%
   filter(Breed2 == "D")
 
 surv_obj <- Surv(
-  time  = FINAL_Analysis_filt_nd$Nav30,
-  event = FINAL_Analysis_filt_nd$N30)
+  time  = FINAL_Analysis_filt_nd$Nav10,
+  event = FINAL_Analysis_filt_nd$N10)
 
 fit <- survfit(
   surv_obj ~ SD,
@@ -1878,9 +1878,9 @@ ggsurvplot(
   risk.table = FALSE,
   xlab = "Time (days)",
   ylab = "Navel Treatment Survival Probability-DAIRY",
-  xlim = c(0, 28),
+  xlim = c(0, 10),
   ylim = c(0.9, 1.0),
-  break.time.by = 7)
+  break.time.by = 2)
 
 
 #BEEF
@@ -1890,8 +1890,8 @@ FINAL_Analysis_filt_nb <- FINAL_Analysis_filt_n %>%
   filter(Breed2 == "B")
 
 surv_obj <- Surv(
-  time  = FINAL_Analysis_filt_nb$Nav30,
-  event = FINAL_Analysis_filt_nb$N30)
+  time  = FINAL_Analysis_filt_nb$Nav10,
+  event = FINAL_Analysis_filt_nb$N10)
 
 fit <- survfit(
   surv_obj ~ SD,
@@ -1907,9 +1907,9 @@ ggsurvplot(
   risk.table = FALSE,
   xlab = "Time (days)",
   ylab = "Navel Treatment Survival Probability-BEEF",
-  xlim = c(0, 28),
+  xlim = c(0, 10),
   ylim = c(0.9, 1.0),
-  break.time.by = 7)
+  break.time.by = 2)
 
 
 ```
@@ -2264,13 +2264,15 @@ ggsurvplot(
 
 ```{r}
 
+#removed diaARR as was not sig in model and did not change the estimate by more than 10%
+
 FINAL_Analysis_filt <- FINAL_Analysis %>% 
   filter(diaex != 1) %>% 
   filter(navelex != 1)
 
 FINAL_Analysis_filt$SD <- relevel(as.factor(FINAL_Analysis_filt$SD), ref = "3")
 
-dia30_model <- coxme(Surv(DIA30, D30) ~ SD*DB  + transitT + BRTHW + diaARR + (1|LOAD/CalfID), 
+dia30_model <- coxme(Surv(DIA30, D30) ~ SD*DB  + transitT + BRTHW + (1|LOAD/CalfID), 
                    data = FINAL_Analysis_filt)
 summary(dia30_model)
 Anova(dia30_model, type = "III")
@@ -2457,11 +2459,13 @@ print(scour_30w)
 print (scour_30lw)
 ```
 
-#### Navel 30d - FINAL
+#### Navel 10d - FINAL
 
 ```{r}
 
-#NEED TO BACKWARDS STEPWISE THIS
+#removed TransitT - changed estimate by 9%
+#removed DiaARR - cahanged by 4%
+
 
 FINAL_Analysis_filt_n <- FINAL_Analysis %>% 
   filter(navelex != 1) %>% 
@@ -2469,26 +2473,26 @@ FINAL_Analysis_filt_n <- FINAL_Analysis %>%
 
 FINAL_Analysis_filt_n$SD <- relevel(as.factor(FINAL_Analysis_filt_n$SD), ref = "3")
 
-nav30_model <- coxme(Surv(Nav30, N30) ~ SD*DB  + transitT + diaARR + BRTHW + (1|LOAD/CalfID), 
+nav10_model <- coxme(Surv(Nav10, N10) ~ SD*DB + BRTHW + (1|LOAD/CalfID), 
                    data = FINAL_Analysis_filt_n)
-summary(nav30_model)
-Anova(nav30_model, type = "III")
+summary(nav10_model)
+Anova(nav10_model, type = "III")
 
-test_ph <- cox.zph(nav30_model)
+test_ph <- cox.zph(nav10_model)
 print(test_ph)
 
 
 plot(test_ph)
 # Plot it (Flat line = assumption holds)
 
-interaction_means <- emmeans(nav30_model, ~SD|DB)
+interaction_means <- emmeans(nav10_model, ~SD|DB)
 sd_contrasts <- pairs(interaction_means, reverse = FALSE) 
 summary(sd_contrasts, type = "response", infer = c(TRUE, TRUE))
 
 
 ```
 
-#### Navel 30 - Dairy
+#### Navel 10 - Dairy
 
 ```{r}
 
@@ -2498,7 +2502,7 @@ FINAL_Analysis_filt_nd <- FINAL_Analysis %>%
 
 FINAL_Analysis_filt_nd$SD <- relevel(as.factor(FINAL_Analysis_filt_nd$SD), ref = "3")
 
-navel_30d <- coxme(Surv(Nav30, N30) ~ as.factor(SD) +  diaARR + transitT + BRTHW + diaex + (1|LOAD), FINAL_Analysis_filt_nd)
+navel_30d <- coxme(Surv(Nav10, N10) ~ as.factor(SD) +  diaARR + transitT + BRTHW + diaex + (1|LOAD), FINAL_Analysis_filt_nd)
 
 summary(navel_30d , type=3)
 Anova(navel_30d , type = "III")
@@ -2516,7 +2520,7 @@ summary(sd_contrasts, type = "response", infer = c(TRUE, TRUE))
 
 ```
 
-#### Navel 30 - Beef
+#### Navel 10 - Beef
 
 ```{r}
 FINAL_Analysis_filt_nb <- FINAL_Analysis %>% 
@@ -2525,7 +2529,7 @@ FINAL_Analysis_filt_nb <- FINAL_Analysis %>%
 
 FINAL_Analysis_filt_nb$SD <- relevel(as.factor(FINAL_Analysis_filt_nb$SD), ref = "3")
 
-navel_30b <- coxme(Surv(Nav30, N30) ~ as.factor(SD) +  diaARR + transitT + BRTHW + diaex + (1|LOAD), FINAL_Analysis_filt_nb)
+navel_30b <- coxme(Surv(Nav10, N10) ~ as.factor(SD) +  diaARR + transitT + BRTHW + diaex + (1|LOAD), FINAL_Analysis_filt_nb)
 
 summary(navel_30b , type=3)
 Anova(navel_30b , type = "III")
@@ -2613,10 +2617,15 @@ summary(sd_contrasts, type = "response", infer = c(TRUE, TRUE))
 #### Resp 60d - FINAL
 
 ```{r}
+#remove BW, no change in 3.5 estimate
+#tranitT resulted in like 50% change so stays in. 
+#remove diaEX, nothing happened which is weird bc we know that calves treated for scours are more likely to be treated for resp? 
+#removed diaARR change in estimate by 2%
+
 
 FINAL_Analysis$SD <- relevel(as.factor(FINAL_Analysis$SD), ref = "3")
 
-resp60_model <- coxme(Surv(PNEU60, P60) ~ SD*DB + transitT + diaARR + BRTHW + navelex + diaex + (1|LOAD/CalfID), data = FINAL_Analysis)
+resp60_model <- coxme(Surv(PNEU60, P60) ~ SD*DB + transitT  + navelex + (1|LOAD/CalfID), data = FINAL_Analysis)
 
 summary(resp60_model)
 Anova(resp60_model, type = "III")
@@ -2743,10 +2752,14 @@ summary(sd_contrasts, type = "response", infer = c(TRUE, TRUE))
 #### Death 30d - FINAL
 
 ```{r}
+#removed transitT - 2%
+#removed navelex - 1%
+
+
 
 FINAL_Analysis$SD <- relevel(as.factor(FINAL_Analysis$SD), ref = "3")
 
-dead30_model <- coxme(Surv(DED30, D30yn) ~ SD + DB + transitT + diaARR + BRTHW +diaex + navelex + (1|LOAD/CalfID), 
+dead30_model <- coxme(Surv(DED30, D30yn) ~ SD + DB + BRTHW + diaARR + diaex + (1|LOAD/CalfID), 
                    data = FINAL_Analysis)
 summary(dead30_model)
 Anova(dead30_model, type = "III")
@@ -2859,9 +2872,17 @@ summary(sd_contrasts, type = "response", infer = c(TRUE, TRUE))
 
 ```{r}
 
+#birthwt = 3%
+#transitT = 1.5%
+#navelex = 3%
+#diaex = 1%
+#diarr was huge like 60%
+
+
+
 FINAL_Analysis$SD <- relevel(as.factor(FINAL_Analysis$SD), ref = "3")
 
-dead60_model <- coxme(Surv(DED60, D60yn) ~ SD + DB + diaARR + transitT + diaex + navelex + BRTHW + (1|LOAD/CalfID), 
+dead60_model <- coxme(Surv(DED60, D60yn) ~ SD + DB + diaARR + (1|LOAD/CalfID), 
                    data = FINAL_Analysis)
 summary(dead60_model)
 Anova(dead60_model, type = "III")
@@ -2966,4 +2987,138 @@ plot(test_ph)
 sd_means <- emmeans(dead_60b, "SD")
 sd_contrasts <- pairs(sd_means, reverse = FALSE) 
 summary(sd_contrasts, type = "response", infer = c(TRUE, TRUE))
+```
+
+#### Plots for Daisy
+
+##### Morbidity (FIX)
+
+```{r}
+# 1. Load required libraries
+library(ggplot2)
+library(dplyr)
+
+# 2. Create the dataset from the provided table
+data <- data.frame(
+  Outcome = c(
+    rep("30d Scours Treatment", 6),
+    rep("10d Navel Treatment", 6),
+    rep("60d Respiratory Treatment", 6)
+  ),
+  Breed = rep(c(rep("Beef", 3), rep("Dairy", 3)), 3),
+  Comparison = rep(c("3 vs. 3.5", "3 vs. 4.5", "3.5 vs. 4.5"), 6),
+  HR = c(
+    1.65, 1.19, 0.72,  0.86, 1.04, 1.21, 
+    #1.48, 2.39, 1.62,  0.51, 1.47, 2.88, 
+    1.10, 1.13, 1.03,  0.84, 0.78, 0.93  
+  ),
+  Lower_CI = c(
+    1.09, 0.79, 0.49,  0.55, 0.66, 0.77,
+    #0.55, 0.83, 0.61,  0.10, 0.21, 0.46,
+    0.87, 0.90, 0.83,  0.56, 0.52, 0.63
+  ),
+  Upper_CI = c(
+    2.51, 1.78, 1.05,  1.36, 1.65, 1.89,
+    #3.98, 6.95, 4.33,  2.55, 10.32, 18.28,
+    1.40, 1.43, 1.27,  1.25, 1.17, 1.37
+  ),
+  p_value = c(
+    0.014, 0.592, 0.097,  0.731, 0.977, 0.590,
+    #0.625, 0.130, 0.479,  0.588, 0.890, 0.370,
+    0.595, 0.420, 0.955,  0.553, 0.323, 0.896
+  )
+)
+
+# Create a combined label for the Y-axis grouping
+data <- data %>%
+  mutate(Plot_Label = paste(Breed, "-", Comparison))
+
+# 3. Generate the plot
+ggplot(data, aes(x = HR, y = Plot_Label, color = Breed)) +
+  geom_vline(xintercept = 1, linetype = "dashed", color = "grey50", size = 0.8) +
+  geom_errorbarh(aes(xmin = Lower_CI, xmax = Upper_CI), height = 0.3, size = 0.8) +
+  geom_point(size = 3.5) +
+  facet_grid(Outcome ~ ., scales = "free_y", space = "free_y") +
+  scale_x_log10(breaks = c(0.1, 0.5, 1, 2, 5, 10, 20)) +
+  scale_color_manual(values = c("Beef" = "grey33", "Dairy" = "wheat")) +
+  labs(
+    title = "Hazard Ratios by Treatment Comparison",
+    subtitle = "Comparing Beef vs. Dairy Across Three Health Outcomes",
+    x = "Hazard Ratio (Log Scale with 95% CI)",
+    y = "",
+    color = "Breed Group"
+  ) +
+  theme_classic(base_size = 13) +
+  theme(
+    strip.text.y = element_text(angle = 0, face = "bold", hjust = 0), 
+    strip.background = element_rect(fill = "grey95", color = NA), 
+    panel.spacing = unit(1, "lines"),
+    legend.position = "top",
+    panel.grid.minor = element_blank()
+  )
+```
+
+##### Mortality (FIX)
+
+```{r}
+# 1. Load required libraries
+library(ggplot2)
+library(dplyr)
+
+# 2. Create the dataset from the provided mortality table
+mortality_data <- data.frame(
+  Outcome = c(
+    rep("Mortality to 30d", 3),
+    rep("Mortality to 60d", 3)
+  ),
+  Comparison = rep(c("3 vs. 3.5", "3 vs. 4.5", "3.5 vs. 4.5"), 2),
+  HR = c(
+    0.86, 1.33, 1.55,  # 30d
+    0.89, 1.23, 1.38   # 60d
+  ),
+  Lower_CI = c(
+    0.45, 0.65, 0.79,  # 30d
+    0.59, 0.67, 0.77   # 60d
+  ),
+  Upper_CI = c(
+    1.64, 2.75, 3.07,  # 30d
+    1.58, 2.30, 2.49   # 60d
+  ),
+  p_value = c(
+    0.847, 0.616, 0.286, # 30d
+    0.891, 0.699, 0.404  # 60d
+  )
+)
+
+# Ensure the comparisons stay in a logical order on the Y-axis
+mortality_data$Comparison <- factor(mortality_data$Comparison, 
+                                    levels = c("3.5 vs. 4.5", "3 vs. 4.5", "3 vs. 3.5"))
+
+# 3. Generate the forest plot
+ggplot(mortality_data, aes(x = HR, y = Comparison)) +
+  # Add reference line at HR = 1 (no difference in mortality risk)
+  geom_vline(xintercept = 1, linetype = "dashed", color = "grey50", size = 0.8) +
+  # Add confidence intervals
+  geom_errorbarh(aes(xmin = Lower_CI, xmax = Upper_CI), height = 0.2, size = 0.8, color = "#2C3E50") +
+  # Add the Hazard Ratio points
+  geom_point(size = 4, color = "#2C3E50") +
+  # Facet by Outcome (30d vs 60d) stacked vertically
+  facet_grid(Outcome ~ ., scales = "free_y", space = "free_y") +
+  # Log scale for accurate geometric visualization of ratios
+  scale_x_log10(breaks = c(0.4, 0.6, 0.8, 1, 1.5, 2, 2.5, 3, 3.5)) +
+  # Customizing labels and clean styling
+  labs(
+    title = "Mortality Hazard Ratios by Treatment Comparison",
+    subtitle = "Evaluating Risk Differences at 30 Days and 60 Days",
+    x = "Hazard Ratio (Log Scale with 95% CI)",
+    y = "Treatment Comparison"
+  ) +
+  theme_classic(base_size = 13) +
+  theme(
+    strip.text.y = element_text(angle = 0, face = "bold", hjust = 0), 
+    strip.background = element_rect(fill = "grey92", color = NA), 
+    panel.spacing = unit(1.5, "lines"),
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(face = "bold")
+  )
 ```
