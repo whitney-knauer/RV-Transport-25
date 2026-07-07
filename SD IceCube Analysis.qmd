@@ -1450,7 +1450,7 @@ ggplot(emm_df, aes(x = hoursfrom_fact, y = emmean, color = TRT, group = TRT)) +
   geom_errorbar(aes(ymin = lower.CL, ymax = upper.CL), width = 0.3) +
   labs(
     x = "Hour from Transport (0)",
-    y = "Estimated Marginal Means of Lying Time") +
+    y = "Lying Time (min/hr)") +
   theme_classic() +
   scale_y_continuous(limits = c(0, 61), breaks = seq(0, 61, by = 10))+
   scale_x_discrete(breaks = seq(-16, 50, by = 4)) +
@@ -1458,7 +1458,7 @@ ggplot(emm_df, aes(x = hoursfrom_fact, y = emmean, color = TRT, group = TRT)) +
          legend.direction = "horizontal", 
               axis.text = element_text(color = "black", size=10), 
                legend.text = element_text(color = "black", size=10))+
-                theme(text=element_text(size=10, family = "Times New Roman"))
+                theme(text=element_text(size=10, family = "Arial"))
 
 
 
@@ -1896,5 +1896,5 @@ ggplot(data = subset (lying_data, !(Period =="Post" & StockingDensity == "3.5"))
     panel.grid.minor = element_blank()
   ) +
   scale_y_continuous(limits = c(30, 60)) +
-  theme(text=element_text(size=12, family = "Times New Roman"))# Adjust Y-axis for better visibility
+  theme(text=element_text(size=12, family = "Arial"))# Adjust Y-axis for better visibility
 ```
