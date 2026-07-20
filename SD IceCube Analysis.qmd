@@ -1438,28 +1438,33 @@ emm_df <- as.data.frame(emm)
 unique(emm_df$TRT)
 
 
-custom_colors <- c("DF3.0" = "red4", "DF3.5" = "goldenrod2", "DF4.5" = "wheat4")
+custom_colors <- c("DF3.0" = "#8db600", "DF3.5" = "#006400", "DF4.5" = "black")
 intercept_0 <- which(levels(emm_df$hoursfrom_fact) == "0")
 intercept_26<- which(levels(emm_df$hoursfrom_fact) == "26")
 
-ggplot(emm_df, aes(x = hoursfrom_fact, y = emmean, color = TRT, group = TRT)) +
-   geom_vline(xintercept = c(intercept_0, intercept_26), linetype = "dashed", color = "gray11")+
+ggplot(emm_df, aes(x = hoursfrom_fact, y = emmean, color = TRT, linetype = TRT, group = TRT)) +
+  geom_vline(xintercept = c(intercept_0, intercept_26), linetype = "dashed", color = "gray11") +
   geom_line() +
   geom_point() +
-  scale_color_manual(values=custom_colors)+
-  geom_errorbar(aes(ymin = lower.CL, ymax = upper.CL), width = 0.3) +
+  scale_color_manual(values = custom_colors) +
+  # Custom line types matching the sequence of your treatment levels:
+  scale_linetype_manual(values = c("DF3.0" = "solid", "DF3.5" = "dashed", "DF4.5" = "dotdash")) +
+  geom_errorbar(aes(ymin = lower.CL, ymax = upper.CL), width = 0.3, linetype = "solid") +
   labs(
     x = "Hour from Transport (0)",
-    y = "Lying Time (min/hr)") +
+    y = "Lying Time (min/hr)",
+    color = NULL,    # Removes the legend title for colors
+    linetype = NULL  # Removes the legend title for line types so they merge cleanly
+  ) +
   theme_classic() +
-  scale_y_continuous(limits = c(0, 61), breaks = seq(0, 61, by = 10))+
+  scale_y_continuous(limits = c(0, 61), breaks = seq(0, 61, by = 10)) +
   scale_x_discrete(breaks = seq(-16, 50, by = 4)) +
-      theme (legend.position = "top", 
-         legend.direction = "horizontal", 
-              axis.text = element_text(color = "black", size=10), 
-               legend.text = element_text(color = "black", size=10))+
-                theme(text=element_text(size=10, family = "Arial"))
-
+  theme(
+    legend.position = "top", 
+    legend.direction = "horizontal", 
+    axis.text = element_text(color = "black", size = 10), 
+    legend.text = element_text(color = "black", size = 10),
+    text = element_text(size = 10, family = "Arial"))
 
 
 #Analysis by cattime? 
@@ -1879,22 +1884,27 @@ lying_data <- data.frame(
 
 # 2. Generate the line graph
 #the data subset step removes the point on the graph for the SD 3.5 after as that only represents like 3 calves. 
-custom_colors <- c("3.0" = "red4", "3.5" = "goldenrod2", "4.5" = "wheat4")
-ggplot(data = subset (lying_data, !(Period =="Post" & StockingDensity == "3.5")), aes(x = Period, y = MeanTime, group = StockingDensity, color = StockingDensity)) +
-  theme_classic () +
+custom_colors <- c("3.0" = "#8db600", "3.5" = "#006400", "4.5" = "black")
+
+ggplot(data = subset(lying_data, !(Period == "Post" & StockingDensity == "3.5")), 
+       aes(x = Period, y = MeanTime, group = StockingDensity, color = StockingDensity, linetype = StockingDensity)) +
+  theme_classic() +
   geom_line() +   
-  scale_color_manual(values=custom_colors)+
-  # Draw lines
-  geom_point() +                         # Add points at each data node
+  scale_color_manual(values = custom_colors) +
+  # Adds your custom line types:
+  scale_linetype_manual(values = c("3.0" = "solid", "3.5" = "dashed", "4.5" = "dotdash")) +
+  geom_point() +                          
+  # Keeps the error bars solid:
   geom_errorbar(aes(ymin = LowerCI, ymax = UpperCI), 
-                width = 0.1, alpha = 0.7) +      # Add 95% CI error bars
+                width = 0.1, alpha = 0.7, linetype = "solid") +     
   labs(
     y = "Lying Time (min/hr)",
-    color = "Stocking Density")+
+    color = NULL,
+    linetype = NULL) +
   theme(
     legend.position = "bottom",
     panel.grid.minor = element_blank()
   ) +
   scale_y_continuous(limits = c(30, 60)) +
-  theme(text=element_text(size=12, family = "Arial"))# Adjust Y-axis for better visibility
+  theme(text = element_text(size = 12, family = "Arial"))
 ```

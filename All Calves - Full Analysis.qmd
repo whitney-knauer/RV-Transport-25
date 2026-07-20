@@ -3064,11 +3064,12 @@ ggplot(data, aes(x = HR, y = Plot_Label, color = Breed)) +
   geom_point(size = 2.5) +
   facet_grid(Outcome ~ ., scales = "free_y", space = "free_y") +
   scale_x_log10(breaks = c(0.1, 0.2, 0.5, 1, 2, 5, 10, 20)) +
-  scale_color_manual(values = c("Beef" = "grey33", "Dairy" = "wheat4")) +
+  # Fixed the color mapping syntax here:
+  scale_color_manual(values = c("Beef" = "#006400", "Dairy" = "black")) + 
   labs(
     x = "Hazard Ratio (Log Scale with 95% CI)",
     y = "",
-    color = "Breed Group"
+    color = NULL # Removes the legend title entirely
   ) +
   theme_classic(base_size = 13) +
   theme(
@@ -3120,9 +3121,9 @@ ggplot(mortality_data, aes(x = HR, y = Comparison)) +
   # Add reference line at HR = 1 (no difference in mortality risk)
   geom_vline(xintercept = 1, linetype = "dashed", color = "grey50", size = 0.8) +
   # Add confidence intervals
-  geom_errorbarh(aes(xmin = Lower_CI, xmax = Upper_CI), height = 0.2, size = 0.8, color = "#2C3E50") +
+  geom_errorbarh(aes(xmin = Lower_CI, xmax = Upper_CI), height = 0.2, size = 0.8, color = "#8db600") +
   # Add the Hazard Ratio points
-  geom_point(size = 2.5, color = "#2C3E50") +
+  geom_point(size = 2.5, color = "#8db600") +
   # Facet by Outcome (30d vs 60d) stacked vertically
   facet_grid(Outcome ~ ., scales = "free_y", space = "free_y") +
   # Log scale for accurate geometric visualization of ratios
